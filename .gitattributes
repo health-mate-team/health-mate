@@ -1,0 +1,56 @@
+# 모든 텍스트 파일은 저장소에 LF로 저장하고 워킹트리도 LF로 체크아웃
+# Windows 환경의 CRLF 자동 변환(core.autocrlf=true)·에디터 자동 변환을 차단한다.
+* text=auto eol=lf
+
+# ─── 명시적 텍스트 (eol=lf 강제) ───────────────────────
+*.dart        text eol=lf
+*.ts          text eol=lf
+*.tsx         text eol=lf
+*.js          text eol=lf
+*.mjs         text eol=lf
+*.cjs         text eol=lf
+*.json        text eol=lf
+*.yaml        text eol=lf
+*.yml         text eol=lf
+*.md          text eol=lf
+*.html        text eol=lf
+*.css         text eol=lf
+*.scss        text eol=lf
+*.py          text eol=lf
+*.sh          text eol=lf
+*.env         text eol=lf
+*.env.example text eol=lf
+Dockerfile    text eol=lf
+.gitignore    text eol=lf
+.gitattributes text eol=lf
+.prettierrc   text eol=lf
+.eslintrc*    text eol=lf
+
+# ─── Windows 전용 스크립트만 CRLF 유지 ───────────────────
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ─── 바이너리 (정규화 금지) ─────────────────────────────
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.svg  binary
+*.pdf  binary
+*.otf  binary
+*.ttf  binary
+*.woff binary
+*.woff2 binary
+*.zip  binary
+*.gz   binary
+*.tar  binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.mp4  binary
+*.mov  binary
+*.mp3  binary
+*.wav  binary
