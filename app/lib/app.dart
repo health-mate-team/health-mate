@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/router/app_router.dart';
+import 'package:health_mate/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 
 class HealthMateApp extends ConsumerWidget {
@@ -13,6 +13,7 @@ class HealthMateApp extends ConsumerWidget {
       title: 'Health Mate',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.light,
       routerConfig: router,
     );
   }
