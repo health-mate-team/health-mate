@@ -1,12 +1,18 @@
 #!/bin/sh
-# Reject commit messages containing "with cursor" (any case).
+# Reject tool-injected footers the team does not want in history.
 set -e
 MSG_FILE="$1"
 if [ ! -f "$MSG_FILE" ]; then
   exit 0
 fi
-if grep -qiE 'with[[:space:]]+cursor' "$MSG_FILE"; then
+# Phrase "with cursor" only when not part of "Made-with" (…[-]with cursor).
+if grep -qiE '(^|[^[:alnum:]-])with[[:space:]]+cursor' "$MSG_FILE"; then
   echo "commit-msg: 메시지에 'with cursor' 문구를 넣을 수 없습니다." >&2
+  exit 1
+fi
+# e.g. "Made-with: Cursor"
+if grep -qiE 'made-with:[[:space:]]*cursor' "$MSG_FILE"; then
+  echo "commit-msg: 메시지에 'Made-with: Cursor' 류 문구를 넣을 수 없습니다." >&2
   exit 1
 fi
 exit 0
