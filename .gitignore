@@ -3,22 +3,43 @@
 .env.local
 .env.*.local
 
+# ─── 시크릿 / 서명 키 ──────────────────────────────
+*.pem
+*.keystore
+*.jks
+app/android/key.properties
+
+# ─── 로그 ──────────────────────────────────────────
+*.log
+
 # ─── Flutter ───────────────────────────────────────
 app/.dart_tool/
 app/.flutter-plugins
 app/.flutter-plugins-dependencies
-app/build/
 app/.packages
-app/pubspec.lock
+app/build/
+app/coverage/
 
-# ─── Flutter 코드 생성 ──────────────────────────────
+# ─── Flutter 코드 생성물 ────────────────────────────
 app/lib/**/*.g.dart
 app/lib/**/*.freezed.dart
+
+# ─── Flutter 플랫폼 (iOS / Android) ────────────────
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework/
+app/android/.gradle/
+app/android/local.properties
+
+# ─── Firebase 인증 (필요 시 -f로 강제 추가) ────────
+app/android/app/google-services.json
+app/ios/Runner/GoogleService-Info.plist
 
 # ─── NestJS / Node ─────────────────────────────────
 backend/node_modules/
 backend/dist/
 backend/.env
+backend/coverage/
 
 # ─── Python / FastAPI ──────────────────────────────
 ai-service/__pycache__/
@@ -35,8 +56,15 @@ docker-compose.override.yml
 .vscode/
 .idea/
 *.swp
-*.swo
 
 # ─── OS ────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+
+# ─── 임시 / 백업 ───────────────────────────────────
+*.tmp
+*.bak
+*~
+
+# ─── Claude Code 작업 산출물 ───────────────────────
+scratch.md
