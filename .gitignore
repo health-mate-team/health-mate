@@ -31,6 +31,7 @@ ai-service/*.pyc
 docker-compose.override.yml
 
 # ─── IDE ───────────────────────────────────────────
+.cursor/
 .vscode/
 .idea/
 *.swp
