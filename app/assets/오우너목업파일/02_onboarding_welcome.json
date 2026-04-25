@@ -1,0 +1,130 @@
+{
+  "screen_id": "02_onboarding_welcome",
+  "name": "온보딩 1: 환영",
+  "purpose": "첫 진입자에게 앱 가치 제안. 부담 없는 톤으로 시작 유도.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.bgPrimary",
+    "OwnerColors.bgElevated",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerTypography.h1",
+    "OwnerTypography.body",
+    "OwnerTypography.button"
+  ],
+  "background": {
+    "type": "linear_gradient_replacement",
+    "note": "그라디언트 금지 룰에 따라 단색 사용",
+    "color": "OwnerColors.bgElevated"
+  },
+  "components": [
+    {
+      "id": "story_progress",
+      "type": "OwnerStoryProgressBar",
+      "position": "top",
+      "padding": "EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+      "props": {
+        "total_steps": 4,
+        "current_step": 1
+      }
+    },
+    {
+      "id": "main_content",
+      "type": "Expanded",
+      "child": {
+        "type": "Padding",
+        "padding": "EdgeInsets.symmetric(horizontal: 16)",
+        "child": {
+          "type": "Column",
+          "mainAxisAlignment": "center",
+          "crossAxisAlignment": "center",
+          "children": [
+            {
+              "id": "moa_hero",
+              "type": "OwnerMoaAvatar",
+              "size": 200,
+              "expression": "waving",
+              "animation": {
+                "trigger": "on_mount",
+                "type": "wave_arm",
+                "loop": true,
+                "duration": "OwnerMotion.character"
+              }
+            },
+            {
+              "type": "SizedBox",
+              "height": 32
+            },
+            {
+              "id": "title",
+              "type": "Text",
+              "text": "안녕! 나는 모아예요",
+              "style": "OwnerTypography.h1",
+              "textAlign": "center"
+            },
+            {
+              "type": "SizedBox",
+              "height": 12
+            },
+            {
+              "id": "subtitle",
+              "type": "Text",
+              "text": "당신의 작은 약속을 지키는\\n동반자가 되어줄게요",
+              "style": "OwnerTypography.body.copyWith(color: OwnerColors.textSecondary)",
+              "textAlign": "center"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bottom_actions",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 0, 16, 32)",
+      "child": {
+        "type": "Column",
+        "children": [
+          {
+            "id": "cta_start",
+            "type": "OwnerButton",
+            "variant": "primary",
+            "label": "시작할게요",
+            "full_width": true,
+            "on_pressed_action": "navigate_to:03_onboarding_name"
+          },
+          {
+            "type": "SizedBox",
+            "height": 12
+          },
+          {
+            "id": "skip_link",
+            "type": "TextButton",
+            "label": "이미 계정이 있어요",
+            "style": "OwnerTypography.bodySm.copyWith(color: OwnerColors.textSecondary)",
+            "on_pressed_action": "navigate_to:login"
+          }
+        ]
+      }
+    }
+  ],
+  "interactions": [],
+  "states": [
+    {
+      "name": "default",
+      "description": "기본 상태"
+    }
+  ],
+  "accessibility": {
+    "screen_reader_label": "환영 화면. 시작 버튼을 눌러주세요."
+  },
+  "qa_checklist": [
+    "모아 인사 모션이 자연스러운가",
+    "스토리 프로그레스바가 1/4로 표시되는가",
+    "시작 버튼이 항상 화면 하단에 고정되어 있는가",
+    "키보드 안 떴을 때 레이아웃 깨지지 않는가"
+  ]
+}

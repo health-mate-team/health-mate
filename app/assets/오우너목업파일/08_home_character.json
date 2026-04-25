@@ -1,0 +1,362 @@
+{
+  "screen_id": "08_home_character",
+  "name": "캐릭터 홈",
+  "purpose": "오우너의 메인 화면. 모아의 상태 = 사용자의 건강 상태. 숫자가 아닌 캐릭터로 표현.",
+  "device": "mobile_375x812",
+  "is_main_screen": true,
+  "tokens_used": [
+    "OwnerColors.bgPrimary",
+    "OwnerColors.bgSurface",
+    "OwnerColors.bgElevated",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.actionSecondary",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerColors.textBrand",
+    "OwnerColors.statEnergy",
+    "OwnerColors.statHydration",
+    "OwnerColors.statRest",
+    "OwnerColors.borderDefault",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.md",
+    "OwnerSpacing.sm",
+    "OwnerTypography.h2",
+    "OwnerTypography.h3",
+    "OwnerTypography.bodySm",
+    "OwnerTypography.caption",
+    "OwnerTypography.overline",
+    "OwnerRadius.radiusLg",
+    "OwnerRadius.radiusXl",
+    "OwnerMotion.character",
+    "OwnerMotion.bouncy"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgPrimary"
+  },
+  "structure": {
+    "type": "Scaffold",
+    "appBar": null,
+    "body": "scrollable_content",
+    "bottomNavigationBar": "OwnerBottomNav (홈/리워드/설정 - V1.0은 3탭만)"
+  },
+  "components": [
+    {
+      "id": "header_bar",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 16, 16, 0)",
+      "child": {
+        "type": "Row",
+        "mainAxisAlignment": "spaceBetween",
+        "children": [
+          {
+            "id": "user_info",
+            "type": "Column",
+            "crossAxisAlignment": "start",
+            "children": [
+              {
+                "type": "Text",
+                "text": "나의 오우너",
+                "style": "OwnerTypography.overline"
+              },
+              {
+                "type": "Text",
+                "text": "{user_name} · Lv.{level}",
+                "style": "OwnerTypography.h3",
+                "data_binding": ["user.name", "user.level"]
+              }
+            ]
+          },
+          {
+            "id": "streak_badge",
+            "type": "OwnerStreakBadge",
+            "data_binding": ["user.streak_days"],
+            "props": {
+              "background": "OwnerColors.bgSurface",
+              "icon": "flame",
+              "text_format": "{streak}일",
+              "text_color": "OwnerColors.textBrand"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "moa_hero_section",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(vertical: 24)",
+      "child": {
+        "type": "Center",
+        "child": {
+          "id": "moa_main",
+          "type": "OwnerMoaAvatar",
+          "size": 220,
+          "expression_logic": {
+            "if_all_stats_above_70": "happy",
+            "if_any_stat_below_30": "sleepy",
+            "default": "default"
+          },
+          "data_binding": ["user.stats.energy", "user.stats.hydration", "user.stats.rest"],
+          "animation": {
+            "type": "breathing",
+            "loop": true,
+            "scale_from": 1.0,
+            "scale_to": 1.02,
+            "duration_ms": 2400,
+            "curve": "OwnerMotion.gentle"
+          },
+          "decorations": [
+            {
+              "type": "floating_emoji",
+              "condition": "stat.hydration < 40",
+              "emoji": "💧",
+              "position": "top_right"
+            },
+            {
+              "type": "floating_emoji",
+              "condition": "stat.rest < 40",
+              "emoji": "💤",
+              "position": "top_left"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stats_row",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Row",
+        "children": [
+          {
+            "id": "stat_energy",
+            "type": "OwnerStatGauge",
+            "props": {
+              "icon": "bolt",
+              "label": "에너지",
+              "value": "{user.stats.energy}",
+              "color": "OwnerColors.statEnergy"
+            },
+            "flex": 1,
+            "margin_right": 8
+          },
+          {
+            "id": "stat_hydration",
+            "type": "OwnerStatGauge",
+            "props": {
+              "icon": "water_drop",
+              "label": "수분",
+              "value": "{user.stats.hydration}",
+              "color": "OwnerColors.statHydration"
+            },
+            "flex": 1,
+            "margin_right": 8
+          },
+          {
+            "id": "stat_rest",
+            "type": "OwnerStatGauge",
+            "props": {
+              "icon": "bedtime",
+              "label": "휴식",
+              "value": "{user.stats.rest}",
+              "color": "OwnerColors.statRest"
+            },
+            "flex": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "spacer_1",
+      "type": "SizedBox",
+      "height": 16
+    },
+    {
+      "id": "quick_actions",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Row",
+        "children": [
+          {
+            "id": "action_water",
+            "type": "OwnerQuickActionButton",
+            "props": {
+              "label": "+ 물 한 컵",
+              "background": "OwnerColors.actionSecondary",
+              "text_color": "OwnerColors.textBrand"
+            },
+            "on_pressed": "navigate_to:09_action_water",
+            "flex": 1,
+            "margin_right": 6
+          },
+          {
+            "id": "action_walk",
+            "type": "OwnerQuickActionButton",
+            "props": {
+              "label": "+ 산책",
+              "background": "OwnerColors.actionSecondary",
+              "text_color": "OwnerColors.textBrand"
+            },
+            "on_pressed": "navigate_to:10_action_walk",
+            "flex": 1,
+            "margin_right": 6
+          },
+          {
+            "id": "action_meal",
+            "type": "OwnerQuickActionButton",
+            "props": {
+              "label": "+ 식사",
+              "background": "OwnerColors.actionSecondary",
+              "text_color": "OwnerColors.textBrand"
+            },
+            "on_pressed": "show_meal_sheet",
+            "flex": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "spacer_2",
+      "type": "SizedBox",
+      "height": 24
+    },
+    {
+      "id": "todays_promise",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "OwnerCard",
+        "variant": "surface",
+        "child": {
+          "type": "Column",
+          "crossAxisAlignment": "start",
+          "children": [
+            {
+              "type": "Text",
+              "text": "오늘의 약속",
+              "style": "OwnerTypography.overline"
+            },
+            {
+              "type": "SizedBox",
+              "height": 8
+            },
+            {
+              "type": "Row",
+              "children": [
+                {
+                  "type": "Expanded",
+                  "child": {
+                    "type": "Text",
+                    "text": "{today.promise.text}",
+                    "style": "OwnerTypography.h3",
+                    "data_binding": ["today.promise.text"]
+                  }
+                },
+                {
+                  "type": "OwnerCheckbox",
+                  "size": 28,
+                  "checked": "{today.promise.completed}",
+                  "color_when_checked": "OwnerColors.actionPrimary"
+                }
+              ]
+            },
+            {
+              "type": "SizedBox",
+              "height": 8
+            },
+            {
+              "type": "Row",
+              "children": [
+                {
+                  "type": "OwnerChip",
+                  "label": "{today.promise.scheduled_time}"
+                },
+                {
+                  "type": "SizedBox",
+                  "width": 8
+                },
+                {
+                  "type": "OwnerChip",
+                  "label": "+{today.promise.reward_xp} XP"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "spacer_3",
+      "type": "SizedBox",
+      "height": 32
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "on_resume",
+      "action": "refresh_stats_with_decay",
+      "description": "앱이 다시 활성화될 때 시간 경과에 따른 스탯 자연 감소 적용"
+    },
+    {
+      "trigger": "on_quick_action_completed",
+      "action": "animate_moa_reaction",
+      "description": "물 / 산책 / 식사 후 모아 표정 변화 + 해당 스탯 게이지 +N% 애니메이션"
+    },
+    {
+      "trigger": "on_promise_checked",
+      "action": "show_completion_animation",
+      "description": "오늘의 약속 체크 시 +50 XP 카운터 애니메이션"
+    }
+  ],
+  "states": [
+    {
+      "name": "default",
+      "description": "모든 스탯 정상. 모아 default 표정"
+    },
+    {
+      "name": "low_hydration",
+      "trigger": "stats.hydration < 40",
+      "description": "수분 부족. 모아 살짝 처진 표정 + 💧 떠오름"
+    },
+    {
+      "name": "low_rest",
+      "trigger": "stats.rest < 40",
+      "description": "휴식 부족. 모아 졸린 표정 + 💤 떠오름"
+    },
+    {
+      "name": "all_high",
+      "trigger": "all stats > 70",
+      "description": "모두 양호. 모아 happy 표정 + ✨ 떠오름"
+    }
+  ],
+  "data_models": {
+    "user": {
+      "name": "string",
+      "level": "int",
+      "streak_days": "int",
+      "stats": {
+        "energy": "int (0-100)",
+        "hydration": "int (0-100)",
+        "rest": "int (0-100)"
+      }
+    },
+    "today": {
+      "promise": {
+        "text": "string",
+        "scheduled_time": "string (e.g., '저녁 8시')",
+        "reward_xp": "int",
+        "completed": "boolean"
+      }
+    }
+  },
+  "qa_checklist": [
+    "모아의 호흡 모션이 거슬리지 않게 부드러운가",
+    "스탯 게이지 변화가 motion.slow (400ms)로 애니메이션되는가",
+    "낮은 스탯 알림 이모지가 stat이 회복되면 자연스럽게 사라지는가",
+    "약속 체크 시 +XP 카운터가 보여지는가",
+    "퀵 액션 버튼이 빠르게 연타되어도 안정적인가"
+  ]
+}

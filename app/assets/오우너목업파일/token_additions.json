@@ -1,0 +1,237 @@
+{
+  "version": "1.1.0",
+  "previous_version": "1.0.0",
+  "purpose": "MVP 화면 명세 작업 중 필요해진 추가 토큰들",
+  "added_tokens": {
+    "colors": {},
+    "spacing": {},
+    "typography": {
+      "display_xl": {
+        "purpose": "풀스크린 모멘트의 거대한 숫자 임팩트 (예: 진화, 주간 리포트)",
+        "fontSize": 76,
+        "fontWeight": 700,
+        "lineHeight": 0.95,
+        "letterSpacing": "-3%",
+        "use_cases": ["evolution_screen", "weekly_highlight", "milestone_moment"]
+      }
+    },
+    "components": {
+      "OwnerMoodCard": {
+        "purpose": "기분 선택 카드 (4개 그리드)",
+        "tokens_used": [
+          "OwnerColors.bgSurface (default)",
+          "OwnerColors.actionPrimary (selected)",
+          "OwnerColors.textPrimary (default)",
+          "OwnerColors.textOnAction (selected)",
+          "OwnerRadius.radiusLg",
+          "OwnerSpacing.md (padding)"
+        ],
+        "structure": "Container + Column(emoji + Text)",
+        "states": ["default", "selected"],
+        "size": "auto-fit grid item, aspect ratio 1:1.2"
+      },
+      "OwnerStreakBadge": {
+        "purpose": "연속 일수 표시 배지 (홈 헤더, 통계 화면)",
+        "tokens_used": [
+          "OwnerColors.bgSurface",
+          "OwnerColors.actionPrimary (icon)",
+          "OwnerColors.textBrand (text)",
+          "OwnerRadius.radiusFull",
+          "OwnerSpacing.sm (padding)"
+        ],
+        "structure": "pill-shape Row(icon + Text)",
+        "props": ["streak_days", "compact_mode"]
+      },
+      "OwnerStatGauge": {
+        "purpose": "3대 스탯 표시 카드 (홈 화면 핵심)",
+        "tokens_used": [
+          "OwnerColors.bgSurface (background)",
+          "OwnerColors.borderDefault (border)",
+          "OwnerColors.beige100 (bar bg)",
+          "OwnerRadius.radiusLg",
+          "OwnerSpacing.md (padding)",
+          "OwnerMotion.slow (gauge animation)",
+          "OwnerMotion.standard (curve)"
+        ],
+        "structure": "Container + Column(icon + label + animated_bar)",
+        "props": ["icon", "label", "value (0-100)", "color"]
+      },
+      "OwnerQuickActionButton": {
+        "purpose": "홈 화면의 즉시 액션 버튼 (물 한 컵 등)",
+        "tokens_used": [
+          "OwnerColors.actionSecondary (background)",
+          "OwnerColors.textBrand (text)",
+          "OwnerRadius.radiusLg",
+          "OwnerSpacing.sm + base (padding)",
+          "OwnerTypography.caption.copyWith(fontWeight: 500)"
+        ],
+        "size": "height 44px (smaller than primary button 52px)",
+        "haptic_feedback": "light_impact on press"
+      },
+      "OwnerStoryProgressBar": {
+        "purpose": "온보딩, 풀스크린 모멘트의 진행 표시",
+        "tokens_used": [
+          "OwnerColors.coral100 (filled)",
+          "OwnerColors.coral50 (unfilled)",
+          "OwnerSpacing.xs (gap between segments)",
+          "OwnerRadius.radiusFull"
+        ],
+        "structure": "Row(segments)",
+        "props": ["total_steps", "current_step"],
+        "segment_height": 3
+      },
+      "OwnerCard": {
+        "purpose": "기본 카드 컨테이너 (variant별 분기)",
+        "variants": {
+          "surface": {
+            "background": "OwnerColors.bgSurface",
+            "border": "0.5px OwnerColors.borderDefault"
+          },
+          "elevated": {
+            "background": "OwnerColors.bgElevated",
+            "border": "none"
+          },
+          "hero": {
+            "background": "OwnerColors.actionPrimary",
+            "text_color": "OwnerColors.textOnAction",
+            "border": "none"
+          }
+        },
+        "common": {
+          "radius": "OwnerRadius.radiusLg",
+          "padding": "OwnerSpacing.lg"
+        }
+      },
+      "OwnerButton": {
+        "purpose": "표준 버튼 위젯 (Material ElevatedButton 래핑)",
+        "variants": {
+          "primary": {
+            "background": "OwnerColors.actionPrimary",
+            "text_color": "OwnerColors.textOnAction",
+            "border": "none"
+          },
+          "secondary": {
+            "background": "transparent",
+            "text_color": "OwnerColors.actionPrimary",
+            "border": "1.5px OwnerColors.actionPrimary"
+          },
+          "text": {
+            "background": "transparent",
+            "text_color": "OwnerColors.textSecondary",
+            "border": "none"
+          }
+        },
+        "common": {
+          "height": 52,
+          "radius": "OwnerRadius.radiusLg",
+          "text_style": "OwnerTypography.button"
+        },
+        "props": ["variant", "label", "full_width", "disabled", "loading"]
+      },
+      "OwnerCheckbox": {
+        "purpose": "약속/할일 완료 체크박스 (커스텀)",
+        "tokens_used": [
+          "OwnerColors.actionPrimary (checked)",
+          "OwnerColors.borderDefault (unchecked border)",
+          "OwnerColors.textOnAction (checkmark)"
+        ],
+        "size": "28×28 (larger than Material default)",
+        "shape": "rounded square (radius.sm)",
+        "animation": "scale_bounce on check (motion.fast + bouncy)"
+      },
+      "OwnerChip": {
+        "purpose": "메타 정보 칩 (시간, XP, 카테고리)",
+        "tokens_used": [
+          "OwnerColors.coral50 (default bg)",
+          "OwnerColors.textBrand (default text)",
+          "OwnerRadius.radiusMd",
+          "OwnerSpacing.xs + sm (padding)",
+          "OwnerTypography.caption"
+        ],
+        "props": ["label", "variant (default/info/success/warning)"],
+        "variants": {
+          "default": "coral 50/900",
+          "info": "accentSky 0.2 alpha / accentSky",
+          "success": "accentMint 0.2 alpha / accentMint",
+          "warning": "accentOrange 0.2 alpha / accentOrange"
+        }
+      },
+      "OwnerMoaAvatar": {
+        "purpose": "모아 캐릭터 표시 위젯 (모든 사이즈/표정 통합)",
+        "props": [
+          "size (24/32/44/60/80/140/160/200/220/300)",
+          "expression (default/happy/sleepy/sad/surprised/star_eyes/wink/determined)",
+          "decorations (List<floating_emoji>)",
+          "breathing_animation (bool)"
+        ],
+        "implementation_note": "SVG asset 또는 Lottie 사용. 표정별로 별도 자산 또는 Rive 통합 권장",
+        "default_breathing": true,
+        "breathing_duration_ms": 2400
+      },
+      "OwnerSooAvatar": {
+        "purpose": "수 캐릭터 표시 위젯",
+        "props": [
+          "size (20/28/36/60/80/130)",
+          "expression (default/happy/star_eyes/cheering)",
+          "with_star_prop (bool)"
+        ],
+        "size_relative_to_moa": "약 0.6배"
+      }
+    },
+    "motion_patterns": {
+      "scale_in_bounce": {
+        "purpose": "캐릭터 등장",
+        "from_scale": 0.0,
+        "to_scale": 1.0,
+        "duration": "OwnerMotion.character",
+        "curve": "OwnerMotion.bouncy"
+      },
+      "breathing": {
+        "purpose": "캐릭터 살아있음 표현",
+        "from_scale": 1.0,
+        "to_scale": 1.02,
+        "duration_ms": 2400,
+        "curve": "OwnerMotion.gentle",
+        "loop": true
+      },
+      "wave_arm": {
+        "purpose": "모아 인사 모션",
+        "rotation_range": "±15deg",
+        "duration_ms": 1200,
+        "curve": "OwnerMotion.bouncy",
+        "loop": true,
+        "loop_count_default": 3
+      },
+      "gauge_fill": {
+        "purpose": "스탯 게이지 채워지는 모션",
+        "duration": "OwnerMotion.slow",
+        "curve": "OwnerMotion.standard"
+      },
+      "story_transition": {
+        "purpose": "풀스크린 모멘트 화면 전환 (스토리식)",
+        "duration": "OwnerMotion.base",
+        "type": "slide_horizontal + fade"
+      }
+    }
+  },
+  "implementation_priority": [
+    "1. OwnerButton (모든 화면에서 사용)",
+    "2. OwnerCard (모든 화면에서 사용)",
+    "3. OwnerChip (자주 사용)",
+    "4. OwnerMoaAvatar (브랜드 핵심)",
+    "5. OwnerStatGauge (홈 화면 핵심)",
+    "6. OwnerStoryProgressBar (온보딩 4화면)",
+    "7. OwnerStreakBadge (홈 헤더)",
+    "8. OwnerSooAvatar (보상 화면들)",
+    "9. OwnerQuickActionButton (홈 액션)",
+    "10. OwnerCheckbox (약속 체크)",
+    "11. OwnerMoodCard (아침 의식)"
+  ],
+  "todo_for_remaining_screens": [
+    "07_morning_ritual_promise (오늘의 약속 카드 컴포넌트)",
+    "09_action_water (물잔 시각화)",
+    "10_action_walk (산책 타이머)",
+    "11_evening_ritual (저녁 회고 카드)",
+    "12_evolution (풀스크린 진화 연출 + 스토리 진행 바)"
+  ]
+}

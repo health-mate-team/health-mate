@@ -1,0 +1,99 @@
+{
+  "screen_id": "01_splash",
+  "name": "스플래시",
+  "purpose": "앱 진입 시 1.5초간 노출. 첫 인상으로 따뜻함을 전달.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.bgPrimary",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.textPrimary",
+    "OwnerTypography.h1",
+    "OwnerMotion.character",
+    "OwnerMotion.bouncy"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgPrimary"
+  },
+  "components": [
+    {
+      "id": "logo_container",
+      "type": "Center",
+      "child": {
+        "type": "Column",
+        "mainAxisAlignment": "center",
+        "children": [
+          {
+            "id": "moa_avatar",
+            "type": "OwnerMoaAvatar",
+            "size": 140,
+            "expression": "happy",
+            "animation": {
+              "trigger": "on_mount",
+              "type": "scale_bounce",
+              "from": 0.0,
+              "to": 1.0,
+              "duration": "OwnerMotion.character",
+              "curve": "OwnerMotion.bouncy"
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 24
+          },
+          {
+            "id": "wordmark",
+            "type": "Text",
+            "text": "오우너",
+            "style": "OwnerTypography.h1.copyWith(color: OwnerColors.textPrimary, fontSize: 32)",
+            "animation": {
+              "trigger": "delayed",
+              "delay_ms": 400,
+              "type": "fade_in",
+              "duration": "OwnerMotion.slow"
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 8
+          },
+          {
+            "id": "tagline",
+            "type": "Text",
+            "text": "오늘도 함께해요",
+            "style": "OwnerTypography.bodySm.copyWith(color: OwnerColors.textSecondary)",
+            "animation": {
+              "trigger": "delayed",
+              "delay_ms": 600,
+              "type": "fade_in",
+              "duration": "OwnerMotion.slow"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "on_mount",
+      "action": "navigate_after_delay",
+      "delay_ms": 1500,
+      "target": {
+        "if_first_launch": "02_onboarding_welcome",
+        "else": "08_home_character"
+      },
+      "transition": "fade"
+    }
+  ],
+  "states": [],
+  "accessibility": {
+    "screen_reader_label": "오우너 앱이 시작되고 있어요",
+    "should_announce": false
+  },
+  "qa_checklist": [
+    "로고 등장 모션이 부드럽게 동작하는가",
+    "1.5초 후 정확히 다음 화면으로 전환되는가",
+    "첫 실행 / 재실행 분기가 정확한가",
+    "다크모드에서도 동작하는가 (V1.1)"
+  ]
+}

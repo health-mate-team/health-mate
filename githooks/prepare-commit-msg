@@ -1,0 +1,14 @@
+#!/bin/sh
+# Strip known tool footer lines only (do not mangle normal summary text).
+set -e
+MSG_FILE="$1"
+SOURCE="${2:-}"
+case "$SOURCE" in
+  merge|squash) exit 0 ;;
+esac
+[ -f "$MSG_FILE" ] || exit 0
+TMP="${MSG_FILE}.hooks-tmp"
+grep -v -iE '^co-authored-by:.*cursor' "$MSG_FILE" \
+  | grep -v -iE '^made-with:[[:space:]]*cursor' > "$TMP" || true
+mv "$TMP" "$MSG_FILE"
+exit 0

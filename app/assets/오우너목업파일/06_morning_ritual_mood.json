@@ -1,0 +1,182 @@
+{
+  "screen_id": "06_morning_ritual_mood",
+  "name": "아침 의식 1: 기분 체크",
+  "purpose": "오전 7시 알림 후 진입. 오늘의 컨디션을 가볍게 체크.",
+  "device": "mobile_375x812",
+  "trigger": "scheduled_07_00 OR app_open_during_07_to_10_no_morning_ritual_yet",
+  "tokens_used": [
+    "OwnerColors.bgElevated",
+    "OwnerColors.bgSurface",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.coral100",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textBrand",
+    "OwnerColors.textSecondary",
+    "OwnerSpacing.base",
+    "OwnerSpacing.xl",
+    "OwnerSpacing.xxl",
+    "OwnerTypography.overline",
+    "OwnerTypography.h1",
+    "OwnerRadius.radiusLg",
+    "OwnerMotion.bouncy"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgElevated"
+  },
+  "components": [
+    {
+      "id": "header",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+      "child": {
+        "type": "Column",
+        "crossAxisAlignment": "start",
+        "children": [
+          {
+            "type": "Text",
+            "text": "좋은 아침 · {today.formatted_date}",
+            "style": "OwnerTypography.overline",
+            "data_binding": ["today.formatted_date"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "moa_with_sun",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(vertical: 32)",
+      "child": {
+        "type": "Stack",
+        "alignment": "center",
+        "children": [
+          {
+            "id": "sun_glow",
+            "type": "Container",
+            "props": {
+              "width": 240,
+              "height": 240,
+              "decoration": {
+                "shape": "circle",
+                "color": "OwnerColors.coral300",
+                "opacity": 0.35
+              }
+            },
+            "animation": {
+              "type": "pulse",
+              "loop": true,
+              "scale_from": 0.95,
+              "scale_to": 1.05,
+              "duration_ms": 3000,
+              "curve": "OwnerMotion.gentle"
+            }
+          },
+          {
+            "id": "moa",
+            "type": "OwnerMoaAvatar",
+            "size": 160,
+            "expression": "happy",
+            "animation": {
+              "type": "scale_in",
+              "trigger": "on_mount",
+              "from": 0.8,
+              "to": 1.0,
+              "duration": "OwnerMotion.character",
+              "curve": "OwnerMotion.bouncy"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "title",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Text",
+        "text": "{user.name}, 오늘 기분은\\n어때요?",
+        "style": "OwnerTypography.h1",
+        "textAlign": "center",
+        "data_binding": ["user.name"]
+      }
+    },
+    {
+      "id": "spacer",
+      "type": "SizedBox",
+      "height": 32
+    },
+    {
+      "id": "mood_grid",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "GridView",
+        "crossAxisCount": 4,
+        "crossAxisSpacing": 8,
+        "mainAxisSpacing": 8,
+        "children_source": "mood_options",
+        "child_template": {
+          "type": "OwnerMoodCard",
+          "selected_state": "selected_mood == this.id"
+        }
+      }
+    }
+  ],
+  "data_models": {
+    "mood_options": [
+      {
+        "id": "great",
+        "emoji": "✨",
+        "label": "좋아요",
+        "scheduled_recommendations": ["challenging_workout", "longer_walk"]
+      },
+      {
+        "id": "okay",
+        "emoji": "☕",
+        "label": "보통",
+        "scheduled_recommendations": ["moderate_walk", "light_workout"]
+      },
+      {
+        "id": "tired",
+        "emoji": "😴",
+        "label": "피곤",
+        "scheduled_recommendations": ["light_stretch", "early_sleep"]
+      },
+      {
+        "id": "exhausted",
+        "emoji": "💧",
+        "label": "지침",
+        "scheduled_recommendations": ["rest_day", "hydration_focus"]
+      }
+    ]
+  },
+  "interactions": [
+    {
+      "trigger": "on_mood_selected",
+      "action": "save_mood_and_navigate",
+      "delay_ms": 300,
+      "target": "07_morning_ritual_promise",
+      "transition": "slide_left",
+      "side_effects": [
+        "save_to_local_db: morning_mood",
+        "calculate_today_recommendation_based_on_mood"
+      ]
+    }
+  ],
+  "states": [
+    {
+      "name": "default",
+      "description": "선택 전. 모든 무드 카드 흰 배경"
+    },
+    {
+      "name": "selected",
+      "description": "하나 선택됨. 선택된 카드는 코랄 배경 + 흰 텍스트"
+    }
+  ],
+  "qa_checklist": [
+    "선택 시 0.3초 안에 다음 화면 전환되는가",
+    "선택된 카드의 시각 변화가 즉각적인가 (motion.fast)",
+    "이미 오늘 아침 의식 완료한 경우 이 화면 진입 차단되는가",
+    "한 번 선택 후 뒤로가기 시 데이터 보존되는가"
+  ]
+}

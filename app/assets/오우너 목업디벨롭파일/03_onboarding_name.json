@@ -1,0 +1,163 @@
+{
+  "screen_id": "03_onboarding_name",
+  "name": "온보딩 2: 이름 입력",
+  "purpose": "사용자 이름을 받아 모아가 부를 호칭 설정. 친밀감 형성.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.bgElevated",
+    "OwnerColors.bgSurface",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerColors.borderDefault",
+    "OwnerColors.borderFocus",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerSpacing.xxl",
+    "OwnerTypography.h1",
+    "OwnerTypography.body",
+    "OwnerTypography.caption",
+    "OwnerRadius.radiusMd",
+    "OwnerRadius.radiusLg"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgElevated"
+  },
+  "components": [
+    {
+      "id": "story_progress",
+      "type": "OwnerStoryProgressBar",
+      "position": "top",
+      "padding": "EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+      "props": {
+        "total_steps": 4,
+        "current_step": 2
+      }
+    },
+    {
+      "id": "main_content",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+      "child": {
+        "type": "Column",
+        "crossAxisAlignment": "start",
+        "children": [
+          {
+            "id": "moa_compact",
+            "type": "Center",
+            "child": {
+              "type": "OwnerMoaAvatar",
+              "size": 100,
+              "expression": "default",
+              "animation": {
+                "type": "breathing",
+                "loop": true
+              }
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "id": "title",
+            "type": "Text",
+            "text": "당신을 어떻게\\n부를까요?",
+            "style": "OwnerTypography.h1"
+          },
+          {
+            "type": "SizedBox",
+            "height": 8
+          },
+          {
+            "id": "subtitle",
+            "type": "Text",
+            "text": "이름이나 닉네임 모두 좋아요",
+            "style": "OwnerTypography.bodySm"
+          },
+          {
+            "type": "SizedBox",
+            "height": 24
+          },
+          {
+            "id": "name_input",
+            "type": "OwnerInputField",
+            "props": {
+              "placeholder": "예: 지민이",
+              "max_length": 10,
+              "auto_focus": true,
+              "input_type": "text"
+            },
+            "data_binding": "user.name"
+          },
+          {
+            "type": "SizedBox",
+            "height": 12
+          },
+          {
+            "id": "input_hint",
+            "type": "Text",
+            "text": "{user.name.length > 0 ? '\"${user.name}\"이라고 부를게요' : '나중에 변경할 수 있어요'}",
+            "style": "OwnerTypography.caption"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bottom_actions",
+      "type": "Positioned",
+      "props": {
+        "bottom": 32,
+        "left": 16,
+        "right": 16
+      },
+      "child": {
+        "type": "OwnerButton",
+        "variant": "primary",
+        "label": "다음",
+        "full_width": true,
+        "disabled_when": "user.name.length == 0",
+        "on_pressed_action": "save_user_name; navigate_to:04_onboarding_goal"
+      }
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "on_text_changed",
+      "action": "validate_name_length",
+      "validation": "1-10 characters, no special chars"
+    },
+    {
+      "trigger": "on_submit",
+      "action": "save_to_local_db_and_continue"
+    }
+  ],
+  "states": [
+    {
+      "name": "empty",
+      "description": "이름 미입력. 다음 버튼 disabled"
+    },
+    {
+      "name": "filled",
+      "description": "이름 입력됨. 다음 버튼 활성화. hint 메시지 변경"
+    },
+    {
+      "name": "error",
+      "description": "특수문자 포함 등 유효하지 않은 입력"
+    }
+  ],
+  "data_models": {
+    "user": {
+      "name": "string (1-10 chars)"
+    }
+  },
+  "qa_checklist": [
+    "키보드 자동 노출되는가",
+    "이름 입력 시 hint 텍스트가 실시간 변경되는가",
+    "다음 버튼이 빈 상태에서는 비활성화되는가",
+    "Enter 키로도 다음 화면 이동 가능한가",
+    "키보드 가려짐 없이 모든 요소 보이는가"
+  ]
+}

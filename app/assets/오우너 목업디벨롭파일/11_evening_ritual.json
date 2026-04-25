@@ -1,0 +1,241 @@
+{
+  "screen_id": "11_evening_ritual",
+  "name": "저녁 의식",
+  "purpose": "하루를 닫는 의식. 약속 체크 + 기분 기록. 2분 안에 끝.",
+  "device": "mobile_375x812",
+  "trigger": "scheduled_20_00 OR app_open_during_20_to_23_no_evening_ritual_yet",
+  "tokens_used": [
+    "OwnerColors.cocoa800",
+    "OwnerColors.cocoa900",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.coral100",
+    "OwnerColors.beige100",
+    "OwnerColors.beige300",
+    "OwnerColors.textOnAction",
+    "OwnerColors.white",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerTypography.overline",
+    "OwnerTypography.h1",
+    "OwnerTypography.body",
+    "OwnerTypography.bodySm",
+    "OwnerRadius.radiusLg",
+    "OwnerRadius.radiusXl"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.cocoa800",
+    "note": "다크 배경으로 저녁 분위기 표현. 라이트 모드 화면 중 유일한 다크 처리"
+  },
+  "components": [
+    {
+      "id": "header",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+      "child": {
+        "type": "Column",
+        "crossAxisAlignment": "start",
+        "children": [
+          {
+            "type": "Container",
+            "padding": "EdgeInsets.symmetric(horizontal: 8, vertical: 4)",
+            "decoration": {
+              "background": "rgba(255,255,255,0.15)",
+              "border_radius": "OwnerRadius.radiusMd"
+            },
+            "child": {
+              "type": "Text",
+              "text": "저녁 의식 · 2분",
+              "style": "OwnerTypography.overline.copyWith(color: OwnerColors.coral100)"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "moa_section",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(vertical: 32)",
+      "child": {
+        "type": "Center",
+        "child": {
+          "type": "OwnerMoaAvatar",
+          "size": 140,
+          "expression": "sleepy",
+          "decorations": [
+            {
+              "type": "z_letters",
+              "count": 2,
+              "color": "OwnerColors.coral300",
+              "animation": "fade_loop"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "title",
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Text",
+        "text": "오늘 어땠어요?",
+        "style": "OwnerTypography.h1.copyWith(color: OwnerColors.white)",
+        "textAlign": "center"
+      }
+    },
+    {
+      "id": "review_card",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 32, 16, 0)",
+      "child": {
+        "type": "Container",
+        "decoration": {
+          "background": "rgba(255,255,255,0.08)",
+          "border_radius": "OwnerRadius.radiusXl"
+        },
+        "padding": "EdgeInsets.all(OwnerSpacing.lg)",
+        "child": {
+          "type": "Column",
+          "crossAxisAlignment": "start",
+          "children": [
+            {
+              "type": "Text",
+              "text": "오늘의 약속",
+              "style": "OwnerTypography.overline.copyWith(color: OwnerColors.coral100)"
+            },
+            {
+              "type": "SizedBox",
+              "height": 12
+            },
+            {
+              "type": "Row",
+              "children": [
+                {
+                  "type": "OwnerCircleCheckbox",
+                  "size": 26,
+                  "checked": "{today.promise.completed}",
+                  "checked_color": "OwnerColors.actionPrimary",
+                  "border_color": "rgba(255,255,255,0.3)",
+                  "on_changed": "toggle_promise_completion"
+                },
+                {
+                  "type": "SizedBox",
+                  "width": 10
+                },
+                {
+                  "type": "Expanded",
+                  "child": {
+                    "type": "Text",
+                    "text": "{today.promise.text}",
+                    "style": "OwnerTypography.body.copyWith(color: OwnerColors.white)"
+                  }
+                },
+                {
+                  "type": "OwnerChip",
+                  "variant": "info_dark",
+                  "label": "+{today.promise.reward_xp}",
+                  "visible_when": "today.promise.completed"
+                }
+              ]
+            },
+            {
+              "type": "Divider",
+              "color": "rgba(255,255,255,0.15)",
+              "height": 24
+            },
+            {
+              "type": "Text",
+              "text": "기분은?",
+              "style": "OwnerTypography.bodySm.copyWith(color: OwnerColors.coral100)"
+            },
+            {
+              "type": "SizedBox",
+              "height": 10
+            },
+            {
+              "type": "Row",
+              "children_source": "evening_mood_options",
+              "child_template": {
+                "type": "OwnerEveningMoodCard",
+                "selected_color": "OwnerColors.actionPrimary",
+                "default_bg": "rgba(255,255,255,0.1)",
+                "size": 56,
+                "selected_state": "selected_evening_mood == this.id",
+                "flex": 1,
+                "spacing": 6
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "complete_button",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 32)",
+      "child": {
+        "type": "OwnerButton",
+        "variant": "primary",
+        "label": "오늘 마무리",
+        "full_width": true,
+        "disabled_when": "selected_evening_mood == null",
+        "on_pressed_action": "complete_evening_ritual"
+      }
+    }
+  ],
+  "data_models": {
+    "today": {
+      "promise": {
+        "text": "string",
+        "completed": "boolean",
+        "reward_xp": "int"
+      }
+    },
+    "evening_mood_options": [
+      {"id": "calm", "emoji": "😌", "label": "평온"},
+      {"id": "happy", "emoji": "😊", "label": "기쁨"},
+      {"id": "strong", "emoji": "💪", "label": "뿌듯"},
+      {"id": "tired", "emoji": "😮‍💨", "label": "지침"}
+    ]
+  },
+  "interactions": [
+    {
+      "trigger": "on_promise_check_toggled",
+      "action": "update_promise_state",
+      "side_effects": [
+        "if checked: award_promise_xp + show_brief_animation",
+        "if unchecked: revert_xp"
+      ]
+    },
+    {
+      "trigger": "on_mood_selected",
+      "action": "save_evening_mood",
+      "haptic_feedback": "light_impact"
+    },
+    {
+      "trigger": "on_complete_pressed",
+      "action": "finalize_evening_ritual",
+      "side_effects": [
+        "save_to_local_db: today.evening_mood",
+        "award_evening_ritual_xp: +20",
+        "if_promise_completed: increment_streak",
+        "if_streak_milestone: queue_celebration_screen",
+        "navigate_to_home_or_celebration"
+      ]
+    }
+  ],
+  "post_completion_logic": {
+    "if_streak_3_or_7_or_14_or_30": "navigate_to:streak_celebration_modal",
+    "if_xp_threshold_reached_for_evolution": "navigate_to:12_evolution",
+    "default": "navigate_to:08_home_character"
+  },
+  "qa_checklist": [
+    "다크 배경에서 텍스트 가독성 OK인가",
+    "약속 체크 시 +XP 즉각 표시되는가",
+    "오늘 의식 이미 완료한 경우 진입 차단되는가",
+    "스트릭 마일스톤 도달 시 축하 화면으로 분기되는가",
+    "진화 조건 도달 시 자동으로 진화 화면으로 이동하는가"
+  ]
+}

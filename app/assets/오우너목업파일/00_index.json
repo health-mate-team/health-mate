@@ -1,0 +1,144 @@
+{
+  "$schema": "./screen.schema.json",
+  "version": "1.0.0",
+  "app": "오우너 (Owner)",
+  "platform": "Flutter",
+  "mvp_scope": "v1.0",
+  "screens": [
+    {
+      "id": "01_splash",
+      "name": "스플래시",
+      "category": "boot",
+      "priority": "P0",
+      "estimated_dev_days": 0.5,
+      "description": "앱 시작 시 1.5초간 노출. 로고 + 모아 등장 애니메이션.",
+      "spec_file": "screens/01_splash.json"
+    },
+    {
+      "id": "02_onboarding_welcome",
+      "name": "온보딩 1: 환영",
+      "category": "onboarding",
+      "priority": "P0",
+      "estimated_dev_days": 0.5,
+      "description": "첫 진입. 모아가 인사하며 앱 가치 제안.",
+      "spec_file": "screens/02_onboarding_welcome.json"
+    },
+    {
+      "id": "03_onboarding_name",
+      "name": "온보딩 2: 이름 입력",
+      "category": "onboarding",
+      "priority": "P0",
+      "estimated_dev_days": 0.5,
+      "description": "사용자 이름 입력. 모아가 부를 호칭.",
+      "spec_file": "screens/03_onboarding_name.json"
+    },
+    {
+      "id": "04_onboarding_goal",
+      "name": "온보딩 3: 목표 설정",
+      "category": "onboarding",
+      "priority": "P0",
+      "estimated_dev_days": 1,
+      "description": "건강 목표 4가지 중 1개 선택. 숫자 입력 없음.",
+      "spec_file": "screens/04_onboarding_goal.json"
+    },
+    {
+      "id": "05_onboarding_meet_moa",
+      "name": "온보딩 4: 모아 만나기",
+      "category": "onboarding",
+      "priority": "P0",
+      "estimated_dev_days": 1,
+      "description": "모아 캐릭터 소개. 알에서 깨어나는 연출.",
+      "spec_file": "screens/05_onboarding_meet_moa.json"
+    },
+    {
+      "id": "06_morning_ritual_mood",
+      "name": "아침 의식 1: 기분 체크",
+      "category": "ritual",
+      "priority": "P0",
+      "estimated_dev_days": 1,
+      "description": "오전 7시 알림 후 진입. 4개 무드 이모지 중 선택.",
+      "spec_file": "screens/06_morning_ritual_mood.json"
+    },
+    {
+      "id": "07_morning_ritual_promise",
+      "name": "아침 의식 2: 오늘의 약속",
+      "category": "ritual",
+      "priority": "P0",
+      "estimated_dev_days": 1,
+      "description": "기분에 맞춰 추천된 1개 약속 확정.",
+      "spec_file": "screens/07_morning_ritual_promise.json"
+    },
+    {
+      "id": "08_home_character",
+      "name": "캐릭터 홈",
+      "category": "home",
+      "priority": "P0",
+      "estimated_dev_days": 2,
+      "description": "메인 화면. 모아 + 3대 스탯 + 빠른 돌봄 액션.",
+      "spec_file": "screens/08_home_character.json"
+    },
+    {
+      "id": "09_action_water",
+      "name": "물 마시기 액션",
+      "category": "action",
+      "priority": "P0",
+      "estimated_dev_days": 0.5,
+      "description": "수분 +1잔 기록 후 모아 반응 피드백.",
+      "spec_file": "screens/09_action_water.json"
+    },
+    {
+      "id": "10_action_walk",
+      "name": "산책 액션",
+      "category": "action",
+      "priority": "P0",
+      "estimated_dev_days": 1,
+      "description": "산책 시작/종료. 시간 + 걸음수 기록.",
+      "spec_file": "screens/10_action_walk.json"
+    },
+    {
+      "id": "11_evening_ritual",
+      "name": "저녁 의식",
+      "category": "ritual",
+      "priority": "P0",
+      "estimated_dev_days": 1,
+      "description": "저녁 8시 알림 후. 약속 체크 + 기분 기록.",
+      "spec_file": "screens/11_evening_ritual.json"
+    },
+    {
+      "id": "12_evolution",
+      "name": "모아 진화",
+      "category": "moment",
+      "priority": "P0",
+      "estimated_dev_days": 2,
+      "description": "레벨 도달 시 풀스크린 진화 연출. SNS 공유 가능.",
+      "spec_file": "screens/12_evolution.json"
+    }
+  ],
+  "shared_components": [
+    "OwnerButton (primary/secondary/text)",
+    "OwnerCard (surface/elevated/hero)",
+    "OwnerStatGauge (energy/hydration/rest)",
+    "OwnerMoaAvatar (다양한 사이즈/표정)",
+    "OwnerSooAvatar (다양한 사이즈/표정)",
+    "OwnerChip",
+    "OwnerInputField",
+    "OwnerBottomSheet",
+    "OwnerStoryProgressBar (진화/풀스크린 모멘트용)"
+  ],
+  "navigation_structure": {
+    "root": "auto_route",
+    "primary_flow": [
+      "splash → onboarding_welcome → onboarding_name → onboarding_goal → onboarding_meet_moa → home_character"
+    ],
+    "ritual_triggers": {
+      "morning_07_00": "morning_ritual_mood → morning_ritual_promise → home_character",
+      "evening_20_00": "evening_ritual → home_character"
+    },
+    "moment_triggers": {
+      "level_up": "evolution → home_character"
+    }
+  },
+  "total_estimated_days": 12,
+  "team_size_assumption": "Flutter dev 1명 + Designer 1명",
+  "delivery_target": "8주 (버퍼 포함)"
+}

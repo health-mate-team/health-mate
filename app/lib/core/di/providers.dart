@@ -8,4 +8,4 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // TODO: ApiClient (Dio/Retrofit) 프로바이더
 // TODO: AuthStateNotifier 프로바이더
 
-export '../router/app_router.dart';
+export 'package:health_mate/routing/app_router.dart';
