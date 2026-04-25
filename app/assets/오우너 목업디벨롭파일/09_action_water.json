@@ -1,0 +1,242 @@
+{
+  "screen_id": "09_action_water",
+  "name": "물 마시기 액션",
+  "purpose": "물 한 컵 기록 + 모아 수분 회복 피드백. 가장 빈번한 액션이자 즉각 보상의 좋은 예시.",
+  "device": "mobile_375x812",
+  "presentation": "modal_sheet",
+  "tokens_used": [
+    "OwnerColors.bgPrimary",
+    "OwnerColors.bgSurface",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.statHydration",
+    "OwnerColors.accentSky",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerColors.textBrand",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerTypography.h2",
+    "OwnerTypography.bodySm",
+    "OwnerTypography.caption",
+    "OwnerRadius.radiusLg",
+    "OwnerRadius.sheetTop",
+    "OwnerMotion.character",
+    "OwnerMotion.bouncy"
+  ],
+  "background": {
+    "type": "modal_sheet",
+    "scrim_color": "OwnerColors.bgScrim",
+    "sheet_background": "OwnerColors.bgSurface",
+    "sheet_radius": "OwnerRadius.sheetTop"
+  },
+  "components": [
+    {
+      "id": "sheet_handle",
+      "type": "Container",
+      "props": {
+        "width": 36,
+        "height": 4,
+        "color": "OwnerColors.coral100",
+        "border_radius": "Radius.circular(2)",
+        "margin_top": 12,
+        "alignment": "center"
+      }
+    },
+    {
+      "id": "title_row",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+      "child": {
+        "type": "Text",
+        "text": "오늘 마신 물",
+        "style": "OwnerTypography.h2"
+      }
+    },
+    {
+      "id": "cup_visualization",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+      "child": {
+        "type": "Container",
+        "decoration": {
+          "background": "OwnerColors.bgPrimary",
+          "border_radius": "OwnerRadius.radiusLg"
+        },
+        "padding": "EdgeInsets.all(OwnerSpacing.lg)",
+        "child": {
+          "type": "Column",
+          "children": [
+            {
+              "id": "cups_grid",
+              "type": "GridView",
+              "crossAxisCount": 8,
+              "spacing": 8,
+              "item_count": 8,
+              "item_template": {
+                "type": "OwnerWaterCupIcon",
+                "filled_state": "index < today.water_intake_count",
+                "size": 32,
+                "filled_color": "OwnerColors.statHydration",
+                "empty_color": "OwnerColors.coral100"
+              }
+            },
+            {
+              "type": "SizedBox",
+              "height": 12
+            },
+            {
+              "type": "Text",
+              "text": "{today.water_intake_count} / 8잔",
+              "style": "OwnerTypography.caption",
+              "alignment": "center"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "moa_reaction",
+      "type": "AnimatedSwitcher",
+      "duration": "OwnerMotion.character",
+      "child_by_state": {
+        "default": {
+          "type": "Padding",
+          "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+          "child": {
+            "type": "Center",
+            "child": {
+              "type": "OwnerMoaAvatar",
+              "size": 100,
+              "expression_logic": {
+                "if_hydration_below_30": "sleepy",
+                "default": "default"
+              }
+            }
+          }
+        },
+        "after_drink": {
+          "type": "Padding",
+          "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+          "child": {
+            "type": "Stack",
+            "alignment": "center",
+            "children": [
+              {
+                "type": "WaterDropletParticles",
+                "duration_ms": 1500,
+                "color": "OwnerColors.accentSky"
+              },
+              {
+                "type": "OwnerMoaAvatar",
+                "size": 100,
+                "expression": "happy",
+                "animation": {
+                  "type": "scale_bounce",
+                  "duration": "OwnerMotion.character"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "feedback_text",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 16, 16, 0)",
+      "child": {
+        "type": "Text",
+        "text_logic": {
+          "if_first_glass_today": "좋은 시작이에요",
+          "if_after_4": "잘 챙기고 계세요!",
+          "if_after_8": "오늘 목표 달성! 모아가 촉촉해졌어요",
+          "default": "물 한 잔 더 마셨어요"
+        },
+        "style": "OwnerTypography.bodySm",
+        "textAlign": "center"
+      }
+    },
+    {
+      "id": "actions_row",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 24)",
+      "child": {
+        "type": "Row",
+        "children": [
+          {
+            "type": "OwnerButton",
+            "variant": "secondary",
+            "label": "취소",
+            "flex": 1,
+            "on_pressed_action": "close_sheet"
+          },
+          {
+            "type": "SizedBox",
+            "width": 12
+          },
+          {
+            "type": "OwnerButton",
+            "variant": "primary",
+            "label": "+ 한 잔",
+            "flex": 2,
+            "disabled_when": "today.water_intake_count >= 8",
+            "on_pressed_action": "increment_water_intake"
+          }
+        ]
+      }
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "on_increment_pressed",
+      "action": "record_water_intake",
+      "side_effects": [
+        "today.water_intake_count += 1",
+        "user.stats.hydration += 12",
+        "user.xp += 3",
+        "show_moa_reaction_animation"
+      ],
+      "haptic_feedback": "light_impact"
+    },
+    {
+      "trigger": "on_target_reached",
+      "condition": "today.water_intake_count == 8",
+      "action": "show_completion_celebration",
+      "side_effects": [
+        "user.xp += 30 (bonus)",
+        "show_completion_toast: '오늘 수분 목표 달성!'"
+      ]
+    }
+  ],
+  "states": [
+    {
+      "name": "default",
+      "description": "기본 상태. 현재 마신 잔 수 표시"
+    },
+    {
+      "name": "after_drink",
+      "duration": "1500ms",
+      "description": "+1잔 직후. 모아 happy + 물방울 파티클"
+    },
+    {
+      "name": "completed",
+      "description": "8잔 달성. 컵 모두 채워짐 + 축하 효과"
+    }
+  ],
+  "data_models": {
+    "today": {
+      "water_intake_count": "int (0-8)"
+    },
+    "user": {
+      "stats.hydration": "int (0-100)",
+      "xp": "int"
+    }
+  },
+  "qa_checklist": [
+    "+ 한 잔 버튼 탭 시 즉각 반응 (motion.fast 이내)",
+    "컵 시각화가 정확히 채워지는가",
+    "8잔 달성 시 +30 XP 보너스 지급되는가",
+    "8잔 이상 입력 차단되는가",
+    "햅틱 피드백이 작동하는가"
+  ]
+}

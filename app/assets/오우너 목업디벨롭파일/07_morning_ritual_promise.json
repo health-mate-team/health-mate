@@ -1,0 +1,216 @@
+{
+  "screen_id": "07_morning_ritual_promise",
+  "name": "아침 의식 2: 오늘의 약속",
+  "purpose": "기분에 맞춰 추천된 1개 약속 확정. 'C+D 하이브리드'의 핵심 — 하루 1개만.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.coral100",
+    "OwnerColors.bgSurface",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerColors.textBrand",
+    "OwnerColors.bgElevated",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerTypography.overline",
+    "OwnerTypography.h2",
+    "OwnerTypography.bodySm",
+    "OwnerRadius.radiusLg",
+    "OwnerRadius.radiusXl"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.coral100"
+  },
+  "components": [
+    {
+      "id": "header",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 24, 16, 0)",
+      "child": {
+        "type": "Text",
+        "text": "오늘의 약속",
+        "style": "OwnerTypography.overline"
+      }
+    },
+    {
+      "id": "moa_speech",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 20, 16, 0)",
+      "child": {
+        "type": "Row",
+        "crossAxisAlignment": "start",
+        "children": [
+          {
+            "type": "OwnerMoaAvatar",
+            "size": 60,
+            "expression_by_mood": {
+              "great": "happy",
+              "okay": "default",
+              "tired": "sleepy",
+              "exhausted": "sleepy"
+            }
+          },
+          {
+            "type": "SizedBox",
+            "width": 12
+          },
+          {
+            "type": "Expanded",
+            "child": {
+              "id": "speech_bubble",
+              "type": "Container",
+              "decoration": {
+                "background": "OwnerColors.bgSurface",
+                "border_radius": "OwnerRadius.radiusLg",
+                "border_radius_top_left": "Radius.circular(4)"
+              },
+              "padding": "EdgeInsets.all(OwnerSpacing.md)",
+              "child": {
+                "type": "Text",
+                "text": "{message_by_mood}",
+                "style": "OwnerTypography.bodySm.copyWith(color: OwnerColors.textPrimary)",
+                "data_binding": ["today.morning_mood"]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "promise_card",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 16, 16, 0)",
+      "child": {
+        "type": "OwnerCard",
+        "variant": "surface",
+        "radius": "OwnerRadius.radiusXl",
+        "padding": "EdgeInsets.all(OwnerSpacing.lg)",
+        "child": {
+          "type": "Column",
+          "crossAxisAlignment": "start",
+          "children": [
+            {
+              "type": "Text",
+              "text": "오늘 딱 하나만",
+              "style": "OwnerTypography.overline"
+            },
+            {
+              "type": "SizedBox",
+              "height": 12
+            },
+            {
+              "type": "Text",
+              "text": "{recommended_promise.text}",
+              "style": "OwnerTypography.h2",
+              "data_binding": ["recommended_promise.text"]
+            },
+            {
+              "type": "SizedBox",
+              "height": 14
+            },
+            {
+              "type": "Row",
+              "children": [
+                {
+                  "type": "OwnerChip",
+                  "label": "{recommended_promise.scheduled_time}"
+                },
+                {
+                  "type": "SizedBox",
+                  "width": 8
+                },
+                {
+                  "type": "OwnerChip",
+                  "label": "+{recommended_promise.reward_xp} XP"
+                }
+              ]
+            },
+            {
+              "type": "SizedBox",
+              "height": 18
+            },
+            {
+              "type": "OwnerButton",
+              "variant": "primary",
+              "label": "약속할게요",
+              "full_width": true,
+              "on_pressed_action": "save_promise; navigate_to:08_home_character"
+            },
+            {
+              "type": "SizedBox",
+              "height": 8
+            },
+            {
+              "type": "TextButton",
+              "label": "다른 걸로 바꾸기",
+              "on_pressed_action": "show_promise_alternatives_sheet"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "data_models": {
+    "today": {
+      "morning_mood": "string (great/okay/tired/exhausted)"
+    },
+    "recommended_promise": {
+      "text": "string",
+      "scheduled_time": "string",
+      "reward_xp": "int",
+      "alternatives": "List<promise>"
+    },
+    "message_by_mood_template": {
+      "great": "오늘 컨디션 좋네요! 기분 좋게 도전해봐요 ✨",
+      "okay": "보통이군요. 오늘은 가볍게 해봐요!",
+      "tired": "조금 피곤하시군요. 천천히 갈게요",
+      "exhausted": "오늘은 무리하지 말고 쉬어요"
+    },
+    "promise_recommendation_logic": {
+      "great + goal_energy": "30분 산책 또는 가벼운 홈트",
+      "okay + goal_energy": "20분 산책",
+      "tired + any": "5분 스트레칭",
+      "exhausted + any": "물 8잔 마시기"
+    }
+  },
+  "interactions": [
+    {
+      "trigger": "on_change_promise_pressed",
+      "action": "show_bottom_sheet",
+      "sheet_content": "alternative_promises_list (3-5개 추가 옵션)"
+    },
+    {
+      "trigger": "on_alternative_selected",
+      "action": "update_recommended_promise; close_sheet"
+    },
+    {
+      "trigger": "on_commit_pressed",
+      "action": "save_today_promise_and_continue",
+      "side_effects": [
+        "save_to_local_db: today.promise",
+        "schedule_promise_reminder_notification: 30min before scheduled_time",
+        "award_morning_ritual_xp: +15"
+      ]
+    }
+  ],
+  "states": [
+    {
+      "name": "default",
+      "description": "추천 약속 표시"
+    },
+    {
+      "name": "selecting_alternative",
+      "description": "바텀시트 열림. 다른 옵션 선택 중"
+    }
+  ],
+  "qa_checklist": [
+    "기분에 따라 모아 표정과 메시지가 다르게 표시되는가",
+    "추천 약속이 사용자 목표(goal)와 매칭되는가",
+    "약속 변경 시 즉각 카드 업데이트되는가",
+    "약속 확정 후 +15 XP 적립되는가",
+    "리마인더 알림이 정확한 시간에 예약되는가"
+  ]
+}

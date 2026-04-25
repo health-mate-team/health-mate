@@ -1,0 +1,177 @@
+{
+  "screen_id": "05_onboarding_meet_moa",
+  "name": "온보딩 4: 모아 만나기",
+  "purpose": "알에서 깨어나는 모아 첫 만남 연출. 감정적 연결의 시작점.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.bgElevated",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.beige300",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerSpacing.base",
+    "OwnerSpacing.xl",
+    "OwnerTypography.h1",
+    "OwnerTypography.body",
+    "OwnerMotion.evolution",
+    "OwnerMotion.bouncy",
+    "OwnerMotion.standard"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgElevated"
+  },
+  "components": [
+    {
+      "id": "story_progress",
+      "type": "OwnerStoryProgressBar",
+      "position": "top",
+      "padding": "EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+      "props": {
+        "total_steps": 4,
+        "current_step": 4
+      }
+    },
+    {
+      "id": "scene_container",
+      "type": "Expanded",
+      "child": {
+        "type": "Column",
+        "mainAxisAlignment": "center",
+        "children": [
+          {
+            "id": "egg_or_moa",
+            "type": "AnimatedSwitcher",
+            "duration": "OwnerMotion.evolution",
+            "child_by_state": {
+              "egg_idle": {
+                "type": "EggSprite",
+                "size": 200,
+                "animation": {
+                  "type": "wiggle",
+                  "loop": true,
+                  "rotation_range": "±3deg",
+                  "duration_ms": 1500
+                }
+              },
+              "egg_cracking": {
+                "type": "EggCrackingSprite",
+                "size": 200,
+                "animation_frames": ["crack_1", "crack_2", "crack_3"]
+              },
+              "moa_appearing": {
+                "type": "OwnerMoaAvatar",
+                "size": 200,
+                "expression": "default",
+                "stage": "sprout",
+                "animation": {
+                  "type": "scale_in_bounce",
+                  "from": 0.0,
+                  "to": 1.0,
+                  "duration": "OwnerMotion.character",
+                  "curve": "OwnerMotion.bouncy"
+                }
+              }
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "id": "narrative_text",
+            "type": "AnimatedSwitcher",
+            "duration": "OwnerMotion.slow",
+            "child_by_state": {
+              "egg_idle": {
+                "type": "Text",
+                "text": "탭해서\\n알을 깨워주세요",
+                "style": "OwnerTypography.body.copyWith(color: OwnerColors.textSecondary)",
+                "textAlign": "center"
+              },
+              "moa_appearing": {
+                "type": "Text",
+                "text": "안녕, {user.name}!\\n나의 오우너가 되어줘",
+                "style": "OwnerTypography.h1",
+                "textAlign": "center",
+                "data_binding": ["user.name"]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tap_zone",
+      "type": "GestureDetector",
+      "covers": "egg_area",
+      "visible_when": "scene_state == egg_idle",
+      "on_tap_action": "advance_scene"
+    },
+    {
+      "id": "bottom_actions",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 0, 16, 32)",
+      "child": {
+        "type": "OwnerButton",
+        "variant": "primary",
+        "label": "함께 시작하기",
+        "full_width": true,
+        "visible_when": "scene_state == moa_appearing",
+        "on_pressed_action": "complete_onboarding; navigate_to:08_home_character"
+      }
+    }
+  ],
+  "scene_states": [
+    {
+      "id": "egg_idle",
+      "duration": "until_user_tap",
+      "description": "알이 흔들리며 탭 유도"
+    },
+    {
+      "id": "egg_cracking",
+      "duration": "1500ms",
+      "description": "알이 점진적으로 깨지는 시퀀스"
+    },
+    {
+      "id": "moa_appearing",
+      "duration": "permanent",
+      "description": "모아 등장 후 시작 버튼 노출"
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "on_egg_tap",
+      "action": "transition_scene_state",
+      "sequence": [
+        "egg_idle → egg_cracking (immediate)",
+        "egg_cracking → moa_appearing (after 1500ms)"
+      ],
+      "haptic_feedback": [
+        {"on": "egg_idle → egg_cracking", "type": "medium_impact"},
+        {"on": "egg_cracking → moa_appearing", "type": "heavy_impact"}
+      ]
+    }
+  ],
+  "data_models": {
+    "user": {
+      "name": "string (from screen 03)",
+      "goal": "string (from screen 04)"
+    }
+  },
+  "side_effects_on_complete": [
+    "create_user_profile_in_local_db",
+    "initialize_moa_stats: energy=80, hydration=70, rest=70",
+    "set_user_level=1, xp=0",
+    "schedule_morning_ritual_notification: 07:00",
+    "schedule_evening_ritual_notification: 20:00",
+    "set_first_launch_flag = false"
+  ],
+  "qa_checklist": [
+    "탭하기 전까지 알이 자연스럽게 흔들리는가",
+    "탭 후 깨지는 연출이 매끄러운가",
+    "모아 등장 시 임팩트가 충분한가",
+    "이름이 정확히 표시되는가",
+    "온보딩 완료 후 데이터가 모두 저장되었는가"
+  ]
+}

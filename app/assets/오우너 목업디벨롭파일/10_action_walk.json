@@ -1,0 +1,413 @@
+{
+  "screen_id": "10_action_walk",
+  "name": "산책 액션",
+  "purpose": "산책 시작/종료 + 시간/걸음수 기록. 핵심 운동 액션의 가장 가벼운 형태.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.bgPrimary",
+    "OwnerColors.bgSurface",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.statEnergy",
+    "OwnerColors.accentMint",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerColors.textBrand",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerTypography.displayXl",
+    "OwnerTypography.h3",
+    "OwnerTypography.overline",
+    "OwnerTypography.caption",
+    "OwnerRadius.radiusLg",
+    "OwnerRadius.radiusXl",
+    "OwnerRadius.radiusFull",
+    "OwnerMotion.standard"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgPrimary"
+  },
+  "components": [
+    {
+      "id": "app_bar",
+      "type": "AppBar",
+      "props": {
+        "leading": "back_button",
+        "title": "산책",
+        "background": "OwnerColors.bgPrimary",
+        "elevation": 0
+      }
+    },
+    {
+      "id": "view_by_state",
+      "type": "AnimatedSwitcher",
+      "duration": "OwnerMotion.base",
+      "child_by_state": {
+        "before_start": "before_start_view",
+        "in_progress": "in_progress_view",
+        "completed": "completed_view"
+      }
+    }
+  ],
+  "subviews": {
+    "before_start_view": {
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Column",
+        "children": [
+          {
+            "type": "SizedBox",
+            "height": 40
+          },
+          {
+            "type": "Center",
+            "child": {
+              "type": "OwnerMoaAvatar",
+              "size": 140,
+              "expression": "happy"
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "Text",
+            "text": "준비됐어요?",
+            "style": "OwnerTypography.h2",
+            "textAlign": "center"
+          },
+          {
+            "type": "SizedBox",
+            "height": 8
+          },
+          {
+            "type": "Text",
+            "text": "함께 걸으러 가요",
+            "style": "OwnerTypography.bodySm",
+            "textAlign": "center"
+          },
+          {
+            "type": "SizedBox",
+            "height": 48
+          },
+          {
+            "type": "OwnerButton",
+            "variant": "primary",
+            "label": "산책 시작",
+            "full_width": true,
+            "on_pressed_action": "start_walk_session"
+          }
+        ]
+      }
+    },
+    "in_progress_view": {
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Column",
+        "children": [
+          {
+            "type": "SizedBox",
+            "height": 24
+          },
+          {
+            "type": "Text",
+            "text": "산책 중",
+            "style": "OwnerTypography.overline",
+            "textAlign": "center"
+          },
+          {
+            "type": "SizedBox",
+            "height": 8
+          },
+          {
+            "type": "Text",
+            "text": "{walk_session.elapsed_time_formatted}",
+            "style": "OwnerTypography.displayXl",
+            "textAlign": "center",
+            "data_binding": ["walk_session.elapsed_seconds"],
+            "format": "MM:SS"
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "Center",
+            "child": {
+              "type": "OwnerMoaAvatar",
+              "size": 120,
+              "expression": "default",
+              "animation": {
+                "type": "walking_bounce",
+                "loop": true,
+                "y_offset_range": "±4px",
+                "duration_ms": 600
+              }
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "Row",
+            "children": [
+              {
+                "type": "OwnerCard",
+                "variant": "surface",
+                "flex": 1,
+                "child": {
+                  "type": "Column",
+                  "children": [
+                    {
+                      "type": "Text",
+                      "text": "걸음",
+                      "style": "OwnerTypography.caption"
+                    },
+                    {
+                      "type": "Text",
+                      "text": "{walk_session.steps}",
+                      "style": "OwnerTypography.h2",
+                      "data_binding": ["walk_session.steps"]
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "SizedBox",
+                "width": 12
+              },
+              {
+                "type": "OwnerCard",
+                "variant": "surface",
+                "flex": 1,
+                "child": {
+                  "type": "Column",
+                  "children": [
+                    {
+                      "type": "Text",
+                      "text": "거리",
+                      "style": "OwnerTypography.caption"
+                    },
+                    {
+                      "type": "Text",
+                      "text": "{walk_session.distance_km}km",
+                      "style": "OwnerTypography.h2",
+                      "data_binding": ["walk_session.distance_meters"]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "OwnerButton",
+            "variant": "primary",
+            "label": "산책 종료",
+            "full_width": true,
+            "on_pressed_action": "complete_walk_session"
+          }
+        ]
+      }
+    },
+    "completed_view": {
+      "type": "Padding",
+      "padding": "EdgeInsets.symmetric(horizontal: 16)",
+      "child": {
+        "type": "Column",
+        "children": [
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "Text",
+            "text": "잘했어요!",
+            "style": "OwnerTypography.h1",
+            "textAlign": "center"
+          },
+          {
+            "type": "SizedBox",
+            "height": 24
+          },
+          {
+            "type": "Center",
+            "child": {
+              "type": "OwnerMoaAvatar",
+              "size": 140,
+              "expression": "happy",
+              "animation": {
+                "type": "scale_bounce",
+                "trigger": "on_mount"
+              }
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "OwnerCard",
+            "variant": "elevated",
+            "child": {
+              "type": "Column",
+              "children": [
+                {
+                  "type": "Text",
+                  "text": "오늘의 산책",
+                  "style": "OwnerTypography.overline",
+                  "alignment": "center"
+                },
+                {
+                  "type": "SizedBox",
+                  "height": 16
+                },
+                {
+                  "type": "Row",
+                  "mainAxisAlignment": "spaceAround",
+                  "children": [
+                    {
+                      "type": "Column",
+                      "children": [
+                        {
+                          "type": "Text",
+                          "text": "{result.duration_formatted}",
+                          "style": "OwnerTypography.h2"
+                        },
+                        {
+                          "type": "Text",
+                          "text": "시간",
+                          "style": "OwnerTypography.caption"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "children": [
+                        {
+                          "type": "Text",
+                          "text": "{result.steps}",
+                          "style": "OwnerTypography.h2"
+                        },
+                        {
+                          "type": "Text",
+                          "text": "걸음",
+                          "style": "OwnerTypography.caption"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "children": [
+                        {
+                          "type": "Text",
+                          "text": "+{result.xp_earned}",
+                          "style": "OwnerTypography.h2.copyWith(color: OwnerColors.actionPrimary)"
+                        },
+                        {
+                          "type": "Text",
+                          "text": "XP",
+                          "style": "OwnerTypography.caption"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "type": "SizedBox",
+            "height": 32
+          },
+          {
+            "type": "OwnerButton",
+            "variant": "primary",
+            "label": "확인",
+            "full_width": true,
+            "on_pressed_action": "save_session_and_navigate_back"
+          }
+        ]
+      }
+    }
+  },
+  "interactions": [
+    {
+      "trigger": "on_start_pressed",
+      "action": "request_motion_permission_then_start",
+      "side_effects": [
+        "request_pedometer_permission",
+        "start_walk_session_timer",
+        "subscribe_to_pedometer_updates"
+      ]
+    },
+    {
+      "trigger": "on_complete_pressed",
+      "action": "stop_session_and_calculate_xp",
+      "xp_calculation": {
+        "if_duration_below_5min": "5",
+        "if_duration_5_to_15min": "10",
+        "if_duration_15_to_30min": "25",
+        "if_duration_above_30min": "40"
+      }
+    },
+    {
+      "trigger": "on_save_pressed",
+      "action": "persist_session",
+      "side_effects": [
+        "save_to_local_db: walk_session",
+        "user.xp += result.xp_earned",
+        "user.stats.energy += 15",
+        "check_promise_completion (if today's promise is walking)"
+      ]
+    }
+  ],
+  "states": [
+    {
+      "name": "before_start",
+      "description": "산책 시작 전"
+    },
+    {
+      "name": "in_progress",
+      "description": "산책 중. 타이머/걸음수 실시간 업데이트"
+    },
+    {
+      "name": "completed",
+      "description": "산책 완료. 결과 요약 표시"
+    }
+  ],
+  "data_models": {
+    "walk_session": {
+      "started_at": "datetime",
+      "elapsed_seconds": "int",
+      "steps": "int (from pedometer)",
+      "distance_meters": "double",
+      "is_active": "boolean"
+    },
+    "result": {
+      "duration_formatted": "string (MM:SS)",
+      "steps": "int",
+      "distance_km": "double",
+      "xp_earned": "int"
+    }
+  },
+  "permissions_required": [
+    "ios.NSMotionUsageDescription: '걸음수 측정을 위해 필요해요'",
+    "android.ACTIVITY_RECOGNITION"
+  ],
+  "qa_checklist": [
+    "권한 거부 시에도 시간 측정은 가능한가",
+    "백그라운드에서 타이머 정확히 작동하는가",
+    "30분 이상 산책 시 정확히 +40 XP 지급되는가",
+    "오늘의 약속이 산책일 때 자동 완료 처리되는가",
+    "강제 종료 후 재진입 시 진행 중 세션 복원되는가"
+  ]
+}

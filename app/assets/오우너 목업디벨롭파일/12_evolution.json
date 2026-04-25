@@ -1,0 +1,369 @@
+{
+  "screen_id": "12_evolution",
+  "name": "모아 진화",
+  "purpose": "레벨 도달 시 풀스크린 진화 연출. 가장 임팩트 있는 모먼트. SNS 공유 유도.",
+  "device": "mobile_375x812",
+  "trigger": "level_up_to_milestone (Lv.3, Lv.7, Lv.15, Lv.30)",
+  "presentation": "fullscreen_modal_no_navbar",
+  "tokens_used": [
+    "OwnerColors.actionPrimary",
+    "OwnerColors.coral100",
+    "OwnerColors.beige50",
+    "OwnerColors.beige100",
+    "OwnerColors.cocoa800",
+    "OwnerColors.white",
+    "OwnerColors.textOnAction",
+    "OwnerColors.accentOrange",
+    "OwnerSpacing.base",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerTypography.displayXl",
+    "OwnerTypography.h1",
+    "OwnerTypography.body",
+    "OwnerTypography.overline",
+    "OwnerRadius.radiusXl",
+    "OwnerMotion.evolution",
+    "OwnerMotion.character",
+    "OwnerMotion.bouncy",
+    "OwnerMotion.gentle"
+  ],
+  "background": {
+    "type": "animated_solid",
+    "phase_1_color": "OwnerColors.cocoa800",
+    "phase_2_color": "OwnerColors.actionPrimary",
+    "phase_3_color": "OwnerColors.beige50"
+  },
+  "scene_phases": [
+    {
+      "id": "phase_1_darkness",
+      "duration": "800ms",
+      "description": "화면 어두워지며 시작. 이전 단계 모아 등장",
+      "components": [
+        {
+          "type": "Center",
+          "child": {
+            "type": "OwnerMoaAvatar",
+            "size": 200,
+            "stage": "{previous_stage}",
+            "expression": "default",
+            "animation": {
+              "type": "fade_in_scale",
+              "duration": "OwnerMotion.character"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "phase_2_light_burst",
+      "duration": "1600ms",
+      "description": "빛이 퍼지며 배경 코랄로 전환. 모아 실루엣만 보임",
+      "components": [
+        {
+          "type": "Stack",
+          "alignment": "center",
+          "children": [
+            {
+              "type": "RadialBurstSprite",
+              "color": "OwnerColors.white",
+              "expand_to_fullscreen": true,
+              "duration_ms": 1200,
+              "particle_count": 24
+            },
+            {
+              "type": "Container",
+              "size": 200,
+              "decoration": {
+                "shape": "circle",
+                "color": "OwnerColors.white",
+                "opacity": 0.95
+              },
+              "animation": {
+                "type": "pulse_grow",
+                "from_scale": 0.5,
+                "to_scale": 1.5,
+                "duration_ms": 1600,
+                "curve": "OwnerMotion.bouncy"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase_3_reveal",
+      "duration": "permanent",
+      "description": "새 단계 모아 등장. 이름 + 혜택 안내",
+      "components": [
+        {
+          "id": "story_progress",
+          "type": "OwnerStoryProgressBar",
+          "padding": "EdgeInsets.fromLTRB(16, 12, 16, 0)",
+          "props": {
+            "total_steps": 3,
+            "current_step": 1,
+            "advance_on_tap": true
+          }
+        },
+        {
+          "id": "label",
+          "type": "Padding",
+          "padding": "EdgeInsets.fromLTRB(16, 12, 16, 0)",
+          "child": {
+            "type": "Text",
+            "text": "모아가 자랐어요!",
+            "style": "OwnerTypography.overline.copyWith(color: OwnerColors.actionPrimary)"
+          }
+        },
+        {
+          "id": "moa_hero",
+          "type": "Padding",
+          "padding": "EdgeInsets.symmetric(vertical: 32)",
+          "child": {
+            "type": "Stack",
+            "alignment": "center",
+            "children": [
+              {
+                "type": "Container",
+                "size": 280,
+                "decoration": {
+                  "shape": "circle",
+                  "color": "OwnerColors.coral100"
+                },
+                "animation": {
+                  "type": "pulse",
+                  "loop": true,
+                  "scale_from": 0.95,
+                  "scale_to": 1.05,
+                  "duration_ms": 3000
+                }
+              },
+              {
+                "type": "OwnerMoaAvatar",
+                "size": 240,
+                "stage": "{new_stage}",
+                "expression": "happy",
+                "animation": {
+                  "type": "scale_in_bounce",
+                  "from": 0.0,
+                  "to": 1.0,
+                  "duration": "OwnerMotion.character",
+                  "curve": "OwnerMotion.bouncy"
+                }
+              },
+              {
+                "type": "SparkleParticles",
+                "count": 12,
+                "color": "OwnerColors.accentOrange"
+              }
+            ]
+          }
+        },
+        {
+          "id": "stage_name",
+          "type": "Center",
+          "child": {
+            "type": "Text",
+            "text": "{stage_data.icon} {stage_data.name}",
+            "style": "OwnerTypography.h1",
+            "textAlign": "center"
+          }
+        },
+        {
+          "type": "SizedBox",
+          "height": 8
+        },
+        {
+          "id": "stage_level",
+          "type": "Center",
+          "child": {
+            "type": "Text",
+            "text": "Lv.{user.level} 도달",
+            "style": "OwnerTypography.body.copyWith(color: OwnerColors.textSecondary)",
+            "textAlign": "center"
+          }
+        }
+      ]
+    },
+    {
+      "id": "phase_4_perks",
+      "duration": "permanent",
+      "description": "이번 단계의 혜택 표시",
+      "components": [
+        {
+          "type": "Padding",
+          "padding": "EdgeInsets.symmetric(horizontal: 16)",
+          "child": {
+            "type": "Container",
+            "decoration": {
+              "background": "OwnerColors.bgSurface",
+              "border_radius": "OwnerRadius.radiusXl"
+            },
+            "padding": "EdgeInsets.all(OwnerSpacing.lg)",
+            "child": {
+              "type": "Column",
+              "crossAxisAlignment": "start",
+              "children": [
+                {
+                  "type": "Text",
+                  "text": "새로 풀린 것들",
+                  "style": "OwnerTypography.overline"
+                },
+                {
+                  "type": "SizedBox",
+                  "height": 12
+                },
+                {
+                  "type": "Column",
+                  "children_source": "stage_data.perks",
+                  "child_template": {
+                    "type": "Row",
+                    "children": [
+                      {
+                        "type": "Icon",
+                        "name": "check_circle",
+                        "size": "OwnerIconSize.md",
+                        "color": "OwnerColors.actionPrimary"
+                      },
+                      {
+                        "type": "SizedBox",
+                        "width": 10
+                      },
+                      {
+                        "type": "Expanded",
+                        "child": {
+                          "type": "Text",
+                          "text": "{this.text}",
+                          "style": "OwnerTypography.bodySm"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "phase_5_share",
+      "duration": "permanent",
+      "description": "공유 유도 화면",
+      "components": [
+        {
+          "type": "Padding",
+          "padding": "EdgeInsets.fromLTRB(16, 0, 16, 32)",
+          "child": {
+            "type": "Column",
+            "children": [
+              {
+                "type": "OwnerButton",
+                "variant": "primary",
+                "label": "친구에게 자랑하기",
+                "full_width": true,
+                "icon": "share",
+                "on_pressed_action": "trigger_native_share_sheet"
+              },
+              {
+                "type": "SizedBox",
+                "height": 12
+              },
+              {
+                "type": "TextButton",
+                "label": "괜찮아요, 그냥 시작할게요",
+                "on_pressed_action": "navigate_to:08_home_character"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "data_models": {
+    "user": {
+      "level": "int (3, 7, 15, or 30)",
+      "previous_level": "int"
+    },
+    "stage_data": {
+      "icon": "string (emoji)",
+      "name": "string",
+      "perks": "List<{ text: string }>",
+      "share_image_url": "string"
+    },
+    "stage_data_table": {
+      "lv_3_to_sprout": {
+        "icon": "🐣",
+        "name": "작은 모아",
+        "perks": [
+          {"text": "옷장 기능 해금"},
+          {"text": "첫 번째 옷 '베이직 핀' 지급"},
+          {"text": "수 친구 1마리 합류"}
+        ]
+      },
+      "lv_7_to_owner": {
+        "icon": "🧡",
+        "name": "오우너 모아",
+        "perks": [
+          {"text": "주간 리그 참여 가능"},
+          {"text": "옷 10종 사용 가능"},
+          {"text": "수 친구 4마리 완성"}
+        ]
+      },
+      "lv_15_to_shining": {
+        "icon": "✨",
+        "name": "빛나는 모아",
+        "perks": [
+          {"text": "프리미엄 옷장 해금"},
+          {"text": "오우너 메이트 칭호"},
+          {"text": "수 친구 8마리 완성"}
+        ]
+      },
+      "lv_30_to_master": {
+        "icon": "👑",
+        "name": "마스터 모아",
+        "perks": [
+          {"text": "한정판 굿즈 쿠폰"},
+          {"text": "수 친구 12마리 완성"},
+          {"text": "명예의 전당 등록"}
+        ]
+      }
+    }
+  },
+  "interactions": [
+    {
+      "trigger": "on_screen_tap",
+      "action": "advance_phase",
+      "phase_sequence": [
+        "phase_1_darkness → phase_2_light_burst",
+        "phase_2_light_burst → phase_3_reveal",
+        "phase_3_reveal → phase_4_perks",
+        "phase_4_perks → phase_5_share"
+      ],
+      "auto_advance_first_3_phases": true,
+      "manual_advance_from": "phase_3_onwards"
+    },
+    {
+      "trigger": "on_share_pressed",
+      "action": "generate_share_image_and_invoke_native_share",
+      "share_image_template": "evolution_share_card.png",
+      "share_text": "모아가 자랐어요! {stage_data.name} 단계 달성 #오우너 #모아"
+    }
+  ],
+  "haptic_feedback_sequence": [
+    {"phase": "phase_2_light_burst", "type": "heavy_impact"},
+    {"phase": "phase_3_reveal", "type": "medium_impact"}
+  ],
+  "audio_cues": [
+    {"phase": "phase_2_light_burst", "sound": "evolution_chime.mp3", "volume": 0.6},
+    {"phase": "phase_3_reveal", "sound": "moa_happy.mp3", "volume": 0.4}
+  ],
+  "qa_checklist": [
+    "각 단계 자동 전환 타이밍이 자연스러운가",
+    "phase_2 빛 효과가 임팩트 있게 보이는가",
+    "공유 이미지가 SNS에 보기 좋게 생성되는가",
+    "단계별 혜택이 정확히 표시되는가",
+    "햅틱 + 사운드가 동기화되는가",
+    "공유 거부 시에도 정상 종료되는가"
+  ]
+}

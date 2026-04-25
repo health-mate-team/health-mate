@@ -1,0 +1,173 @@
+{
+  "screen_id": "04_onboarding_goal",
+  "name": "온보딩 3: 목표 설정",
+  "purpose": "건강 목표 4가지 중 1개 선택. 숫자 입력 없이 의도로만 설정.",
+  "device": "mobile_375x812",
+  "tokens_used": [
+    "OwnerColors.bgElevated",
+    "OwnerColors.bgSurface",
+    "OwnerColors.actionPrimary",
+    "OwnerColors.actionSecondary",
+    "OwnerColors.textPrimary",
+    "OwnerColors.textSecondary",
+    "OwnerColors.textOnAction",
+    "OwnerColors.statEnergy",
+    "OwnerColors.statHydration",
+    "OwnerColors.statRest",
+    "OwnerColors.accentMint",
+    "OwnerSpacing.base",
+    "OwnerSpacing.md",
+    "OwnerSpacing.lg",
+    "OwnerSpacing.xl",
+    "OwnerTypography.h1",
+    "OwnerTypography.h3",
+    "OwnerTypography.bodySm",
+    "OwnerTypography.caption",
+    "OwnerRadius.radiusLg"
+  ],
+  "background": {
+    "type": "solid",
+    "color": "OwnerColors.bgElevated"
+  },
+  "components": [
+    {
+      "id": "story_progress",
+      "type": "OwnerStoryProgressBar",
+      "position": "top",
+      "padding": "EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+      "props": {
+        "total_steps": 4,
+        "current_step": 3
+      }
+    },
+    {
+      "id": "header",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 16, 16, 0)",
+      "child": {
+        "type": "Column",
+        "crossAxisAlignment": "start",
+        "children": [
+          {
+            "type": "Text",
+            "text": "어떤 변화를\\n원하세요?",
+            "style": "OwnerTypography.h1"
+          },
+          {
+            "type": "SizedBox",
+            "height": 8
+          },
+          {
+            "type": "Text",
+            "text": "지금 가장 마음에 드는 하나만 선택하세요",
+            "style": "OwnerTypography.bodySm"
+          }
+        ]
+      }
+    },
+    {
+      "id": "goal_list",
+      "type": "Padding",
+      "padding": "EdgeInsets.fromLTRB(16, 32, 16, 0)",
+      "child": {
+        "type": "Column",
+        "children_source": "goal_options",
+        "child_template": {
+          "type": "OwnerGoalCard",
+          "selected_state": "selected_goal == this.id",
+          "margin_bottom": 12
+        }
+      }
+    },
+    {
+      "id": "bottom_actions",
+      "type": "Positioned",
+      "props": {
+        "bottom": 32,
+        "left": 16,
+        "right": 16
+      },
+      "child": {
+        "type": "OwnerButton",
+        "variant": "primary",
+        "label": "이걸로 시작할게요",
+        "full_width": true,
+        "disabled_when": "selected_goal == null",
+        "on_pressed_action": "save_goal; navigate_to:05_onboarding_meet_moa"
+      }
+    }
+  ],
+  "data_models": {
+    "goal_options": [
+      {
+        "id": "energy",
+        "icon": "⚡",
+        "color": "OwnerColors.statEnergy",
+        "title": "더 활기차게",
+        "subtitle": "에너지 넘치는 하루를 만들어요",
+        "associated_actions": ["regular_exercise", "good_sleep", "balanced_meal"]
+      },
+      {
+        "id": "hydration",
+        "icon": "💧",
+        "color": "OwnerColors.statHydration",
+        "title": "건강한 습관",
+        "subtitle": "물 마시기, 식단 챙기기부터 차근차근",
+        "associated_actions": ["water_intake", "meal_tracking"]
+      },
+      {
+        "id": "rest",
+        "icon": "🌙",
+        "color": "OwnerColors.statRest",
+        "title": "잘 쉬고 싶어",
+        "subtitle": "충분한 수면과 회복에 집중해요",
+        "associated_actions": ["sleep_tracking", "stretching", "meditation"]
+      },
+      {
+        "id": "shape",
+        "icon": "🌸",
+        "color": "OwnerColors.accentMint",
+        "title": "몸이 가벼워졌으면",
+        "subtitle": "꾸준한 운동과 식단 관리로 천천히",
+        "associated_actions": ["light_exercise", "portion_control", "walking"]
+      }
+    ]
+  },
+  "interactions": [
+    {
+      "trigger": "on_goal_selected",
+      "action": "set_selected_goal",
+      "haptic_feedback": "light_impact"
+    },
+    {
+      "trigger": "on_continue_pressed",
+      "action": "save_goal_and_initialize_recommendations",
+      "side_effects": [
+        "save_to_local_db: user_goal",
+        "preset_initial_promises_based_on_goal"
+      ]
+    }
+  ],
+  "states": [
+    {
+      "name": "default",
+      "description": "선택 전. 모든 카드 surface 변형"
+    },
+    {
+      "name": "selected",
+      "description": "한 카드 선택됨. 선택된 카드는 actionPrimary 배경 + textOnAction"
+    }
+  ],
+  "design_notes": [
+    "체중 감량을 직접 표현하지 않음 (다이어트 강박 회피)",
+    "'몸이 가벼워졌으면'이라는 부드러운 표현으로 대체",
+    "숫자 목표 (예: 5kg 감량) 입력받지 않음",
+    "모든 옵션이 긍정적 변화로 표현"
+  ],
+  "qa_checklist": [
+    "4개 카드가 모두 화면에 보이는가 (스크롤 없이)",
+    "선택 변경 시 즉각 반응 (motion.fast)",
+    "선택된 카드 텍스트 가독성 OK인가",
+    "디자인 룰북: '체중 강조 큰 숫자 금지' 위반 없는가"
+  ]
+}
