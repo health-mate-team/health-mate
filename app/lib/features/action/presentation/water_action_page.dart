@@ -4,7 +4,7 @@ import 'package:health_mate/core/theme/owner/owner_design_system.dart';
 import 'package:health_mate/features/action/presentation/water_action_result.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
-/// 명세: [오우너 목업디벨롭파일/09_action_water.json] — 시트형 레이아웃을 풀스크린에 맞춤.
+/// 명세: [docs/design/owner-mock-develop/09_action_water.json] — 시트형 레이아웃을 풀스크린에 맞춤.
 class WaterActionPage extends StatefulWidget {
   const WaterActionPage({super.key});
 

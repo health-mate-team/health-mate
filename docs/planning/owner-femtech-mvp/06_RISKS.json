@@ -1,0 +1,339 @@
+{
+  "$schema": "./schemas/risks.schema.json",
+  "module": "risks",
+  "version": "1.0.0",
+  "purpose": "MVP 출시까지 가장 위험한 리스크 정리. 각 리스크마다 발현 가능성·영향·대응 명시.",
+  "principle": "리스크는 '있을 수도 있는 일'이 아니라 '확률 × 영향'으로 봐야 함. 미리 알면 대응이 빠름.",
+
+  "risk_categories": [
+    {
+      "category": "regulatory",
+      "name": "의학적 책임 영역",
+      "description": "사이클·호르몬 코칭이 한국 의료법상 '의료 행위' 또는 '의료 광고'로 해석될 위험"
+    },
+    {
+      "category": "technical",
+      "name": "기술적 한계",
+      "description": "사이클 예측의 정확성·데이터 보안·사용자 입력 정확성 문제"
+    },
+    {
+      "category": "user",
+      "name": "사용자 행동",
+      "description": "예상보다 낮은 참여율·이탈·콘텐츠 거부"
+    },
+    {
+      "category": "business",
+      "name": "사업·운영",
+      "description": "베타 모집·콘텐츠 제작 지연·팀 합의 문제"
+    }
+  ],
+
+  "risks": [
+    {
+      "id": "R01",
+      "category": "regulatory",
+      "title": "의료법 해석 위험",
+      "description": "'호르몬 주기에 맞춘 추천'이 의료 행위·의료 정보 제공으로 해석될 가능성. 한국 펨테크 앱 카리아 등이 진출 못한 이유. 처분 사례는 적지만 위험 자체는 존재.",
+      "likelihood": "low",
+      "impact": "critical",
+      "risk_score": 6,
+      "early_signals": [
+        "앱스토어 심사에서 '의료 정보 제공' 카테고리로 분류 요구",
+        "사용자가 '진단해달라'고 요청하는 패턴",
+        "PR 시 '의료 앱'으로 잘못 표기되는 경우"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "모든 메시지를 '라이프스타일 코칭'으로 한정. '진단·치료·예방' 단어 사용 금지.",
+          "owner": "designer + pm",
+          "deadline": "W2 (콘텐츠 톤 가이드 작성 시)"
+        },
+        {
+          "type": "prevent",
+          "action": "앱 내 면책 조항 필수: '오우너는 의료 서비스가 아닙니다. 증상이 있으면 의사와 상담하세요.'",
+          "owner": "pm",
+          "deadline": "W3 (온보딩 단계 4)"
+        },
+        {
+          "type": "prevent",
+          "action": "의료 키워드 차단 리스트 (모아 메시지 작성 시): 진단, 치료, 처방, 약, 질환, 병",
+          "owner": "designer",
+          "deadline": "W2"
+        },
+        {
+          "type": "respond",
+          "action": "사용자가 의료 질문 시 자동 응답: '저는 의료 정보 제공이 아닙니다. 산부인과 상담을 권해요.'",
+          "owner": "flutter_dev",
+          "deadline": "W4"
+        }
+      ]
+    },
+    {
+      "id": "R02",
+      "category": "technical",
+      "title": "불규칙 사이클 사용자 처리",
+      "description": "한국 여성 약 30%가 불규칙 사이클. 28일 가정이 깨지면 모든 추천이 어긋남. 이 사용자가 '나한테 안 맞아'라고 떠나면 H1·H2 동시 실패.",
+      "likelihood": "high",
+      "impact": "high",
+      "risk_score": 9,
+      "early_signals": [
+        "베타 모집 시 '나는 불규칙해서 못 써요'라는 거부 반응",
+        "온보딩 후 사이클 캘린더 화면에서 이탈률 높음",
+        "추천 운동 거부율이 특정 사용자에게 집중"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "온보딩 단계 4에 'is_irregular' 토글. true이면 phase_confidence를 0.5로 설정하고 UI에 '대략적인 가이드'로 표시.",
+          "owner": "flutter_dev_1 + designer",
+          "deadline": "W1-W2 (CYCLE_OS 구현 시)"
+        },
+        {
+          "type": "prevent",
+          "action": "불규칙 사용자에게도 가치 있는 fallback: 사이클 인식 약화하고 '기분 + 컨디션' 기반 추천 강화",
+          "owner": "flutter_dev_1",
+          "deadline": "W2"
+        },
+        {
+          "type": "monitor",
+          "action": "베타 사용자 중 불규칙 비율 추적. 30% 이상이면 별도 분석 cohort 생성.",
+          "owner": "pm",
+          "deadline": "W7 (베타 시작)"
+        },
+        {
+          "type": "respond",
+          "action": "v1.1에 ML 모델 도입: 사용자 데이터 3개월 누적 후 개인화 사이클 길이 학습",
+          "owner": "flutter_dev_1",
+          "deadline": "post_v1_0"
+        }
+      ]
+    },
+    {
+      "id": "R03",
+      "category": "technical",
+      "title": "사이클 데이터 보안 사고",
+      "description": "생리·호르몬 데이터는 가장 민감한 개인정보. 유출 시 신뢰 즉사 + 법적 책임. 펨테크 앱의 가장 큰 약점.",
+      "likelihood": "low",
+      "impact": "critical",
+      "risk_score": 7,
+      "early_signals": [
+        "사용자가 '데이터 어디 저장되나요'라고 자주 질문",
+        "보안 감사·평판 모니터링에서 부정적 신호"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "민감 데이터(생리일, 증상)는 Flutter Secure Storage에 로컬 암호화 저장 우선",
+          "owner": "flutter_dev_1",
+          "deadline": "W1 (CYCLE_OS 구현 시)"
+        },
+        {
+          "type": "prevent",
+          "action": "분석을 위한 서버 동기화는 옵션. 동의 시 user_id hash 처리 + 통계 데이터만 송신",
+          "owner": "flutter_dev_1 + pm",
+          "deadline": "W2"
+        },
+        {
+          "type": "prevent",
+          "action": "End-to-end 암호화: 백엔드도 사용자 원본 데이터 못 보는 구조 (zero-knowledge)",
+          "owner": "flutter_dev_1",
+          "deadline": "W3"
+        },
+        {
+          "type": "respond",
+          "action": "데이터 유출 발생 시 24시간 내 사용자 통보 + 외부 보안 감사 즉시 의뢰. 사전에 절차 문서화.",
+          "owner": "pm",
+          "deadline": "W6 (베타 직전)"
+        }
+      ]
+    },
+    {
+      "id": "R04",
+      "category": "user",
+      "title": "5분 운동도 길다고 느끼는 사용자",
+      "description": "30대 직장인 페인포인트가 시간 부족이지만, 5분조차 부담스럽게 느껴질 수 있음. 그러면 H2 실패.",
+      "likelihood": "medium",
+      "impact": "high",
+      "risk_score": 6,
+      "early_signals": [
+        "운동 영상 시작 후 30초 내 이탈률 높음",
+        "workout_skipped 이벤트의 reason에 '시간 없음' 빈도 높음",
+        "주 3회 이상 완료 비율이 30% 미만으로 정체"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "운동 시작 화면에 '오늘 너무 바빠? 1분만 해도 OK' 옵션 추가. 1분 미니 버전 따로 제작.",
+          "owner": "designer + flutter_dev",
+          "deadline": "W3"
+        },
+        {
+          "type": "prevent",
+          "action": "운동 종류별 30초 미리보기 영상 (전체 5분이 어떤지 빠르게 보여줌)",
+          "owner": "designer + external_trainer",
+          "deadline": "W5"
+        },
+        {
+          "type": "respond",
+          "action": "베타 2주차에 운동 거부 사용자 5명 인터뷰. '왜 5분이 안 됐는지' 진짜 이유 파악",
+          "owner": "pm",
+          "deadline": "W8 (베타 2주차)"
+        }
+      ]
+    },
+    {
+      "id": "R05",
+      "category": "user",
+      "title": "베타 사용자 50명 모집 실패",
+      "description": "친구·지인 채널만으로 50명 다양성 확보 어려움. 모집 지연되면 검증 일정 전체 지연.",
+      "likelihood": "medium",
+      "impact": "medium",
+      "risk_score": 4,
+      "early_signals": [
+        "W6 시점에 모집 사전 신청자 30명 미만",
+        "인스타 인플루언서 협업 응답 없음",
+        "친구 추천이 같은 인구통계에 집중 (예: 모두 28-30 IT업계 여성)"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "W4부터 베타 사전 신청 페이지 운영. 친구·인스타·커뮤니티 동시 노출.",
+          "owner": "pm + designer",
+          "deadline": "W4"
+        },
+        {
+          "type": "prevent",
+          "action": "인플루언서 1-2명 사전 컨택 (펨테크/웰니스 결, 팔로워 1만-5만)",
+          "owner": "pm",
+          "deadline": "W5"
+        },
+        {
+          "type": "respond",
+          "action": "30명만 모이면 30명으로 시작. 통계적 검증력은 떨어지지만 정성 신호는 충분.",
+          "owner": "pm",
+          "deadline": "W7"
+        }
+      ]
+    },
+    {
+      "id": "R06",
+      "category": "business",
+      "title": "운동 영상 제작 지연",
+      "description": "PT 트레이너 섭외·촬영·편집 중 어느 단계든 지연 가능. 영상 없으면 베타 출시 미뤄짐.",
+      "likelihood": "medium",
+      "impact": "medium",
+      "risk_score": 4,
+      "early_signals": [
+        "W5 시작 시점에 트레이너 미확정",
+        "촬영 후 W6 중반까지 편집 50% 미달",
+        "PT 트레이너의 콘텐츠 톤이 디자인팀 기대와 어긋남"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "W3까지 트레이너 후보 3명 미팅 + 1명 확정",
+          "owner": "pm",
+          "deadline": "W3"
+        },
+        {
+          "type": "prevent",
+          "action": "W5 촬영 전 동작 시퀀스를 디자인팀 + 트레이너가 1차 합의 (스토리보드)",
+          "owner": "designer + pm",
+          "deadline": "W4"
+        },
+        {
+          "type": "fallback",
+          "action": "최악 시나리오: 03_WORKOUT_MATRIX의 fallback_for_no_video 활용. 일러스트 + 오디오만으로 베타 시작 가능.",
+          "owner": "designer",
+          "deadline": "W6 (영상 50% 미달 시 즉시 전환)"
+        }
+      ]
+    },
+    {
+      "id": "R07",
+      "category": "user",
+      "title": "캐릭터가 사이클 인식 메시지를 못 살림",
+      "description": "모아의 메시지가 '황체기라 자연스러워' 같은 사이클 인식을 안 보여주면, 사용자는 그냥 다마고치 키우는 것처럼 느낌. 그러면 H1 실패.",
+      "likelihood": "medium",
+      "impact": "high",
+      "risk_score": 6,
+      "early_signals": [
+        "사용자 인터뷰에서 '모아 귀여운데 왜 그런 말 하는지 모르겠어요'",
+        "morning_ritual_completed 이벤트에서 사이클 단계 인지 응답률 낮음"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "모아 메시지 50개 작성 시 단계별 인과 설명 명시. 예: '황체기라 단 거 땡기는 거 자연스러워'",
+          "owner": "designer + pm",
+          "deadline": "W3"
+        },
+        {
+          "type": "prevent",
+          "action": "모아 메시지 톤 가이드: 02_CYCLE_OS의 phases.moa_messaging_tone.examples에 명시된 형식 강제 준수",
+          "owner": "designer",
+          "deadline": "W2"
+        },
+        {
+          "type": "monitor",
+          "action": "베타 1주차에 '오늘 모아가 한 말이 무슨 뜻인지 알겠나요?' 펄스 설문",
+          "owner": "pm",
+          "deadline": "W7"
+        }
+      ]
+    },
+    {
+      "id": "R08",
+      "category": "business",
+      "title": "팀 내 정체성 변경 합의 실패",
+      "description": "캐릭터 중심 → 펨테크 운동으로 정체성 전환에 팀 일부가 동의 안 하면 메시지 일관성 깨짐. 마케팅·디자인·개발이 다른 그림 그림.",
+      "likelihood": "low",
+      "impact": "high",
+      "risk_score": 5,
+      "early_signals": [
+        "팀 회의에서 '우리 캐릭터 앱 아니야?' 같은 질문 반복",
+        "디자인 작업물에서 사이클 OS 인식이 약함",
+        "마케팅 카피가 '귀여운 헬스앱'에 머무름"
+      ],
+      "mitigations": [
+        {
+          "type": "prevent",
+          "action": "결정 메모 (owner_pivot_memo.docx) 팀 전체 공유 + 토론 회의 1회",
+          "owner": "pm",
+          "deadline": "W1 시작 전"
+        },
+        {
+          "type": "prevent",
+          "action": "이 docs/planning/owner-femtech-mvp/ 폴더를 팀 공동 SOURCE OF TRUTH로 지정. 모든 의사결정은 여기서 먼저 확인.",
+          "owner": "pm",
+          "deadline": "W1"
+        }
+      ]
+    }
+  ],
+
+  "risk_score_calculation": {
+    "method": "likelihood (low=1, medium=2, high=3) × impact (low=1, medium=2, high=3, critical=4)",
+    "interpretation": {
+      "1-3": "Watch (모니터링)",
+      "4-6": "Manage (적극 대응)",
+      "7-12": "Critical (즉시 행동)"
+    },
+    "current_critical_risks": ["R02 불규칙 사용자 (9)", "R03 데이터 보안 (7)"],
+    "current_managed_risks": ["R01 의료법 (6)", "R04 5분 부담 (6)", "R07 캐릭터 메시지 (6)", "R08 팀 합의 (5)", "R05 베타 모집 (4)", "R06 영상 지연 (4)"]
+  },
+
+  "weekly_review_protocol": {
+    "frequency": "매주 금요일 30분",
+    "agenda": [
+      "1. 이번 주 deliverables 달성률 (05_TIMELINE 기반)",
+      "2. early_signals 발현 여부 점검 (각 리스크별)",
+      "3. 새 리스크 추가 여부",
+      "4. 다음 주 mitigation 작업 우선순위"
+    ]
+  },
+
+  "depends_on": ["01_HYPOTHESES", "02_CYCLE_OS", "03_WORKOUT_MATRIX", "04_SUCCESS_METRICS", "05_TIMELINE"],
+  "depended_by": []
+}

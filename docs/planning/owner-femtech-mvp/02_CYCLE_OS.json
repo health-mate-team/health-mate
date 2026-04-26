@@ -1,0 +1,290 @@
+{
+  "$schema": "./schemas/cycle_os.schema.json",
+  "module": "cycle_os",
+  "version": "1.0.0",
+  "purpose": "오우너의 운영체제. 28일 호르몬 주기를 4단계로 모델링하고, 각 단계마다 운동·식사·휴식·메시지가 어떻게 변하는지 정의. 모든 추천 로직의 SOURCE OF TRUTH.",
+  "principle": "사용자가 '오늘 며칠차'냐에 따라 앱 전체가 다른 모습으로 보여야 함. 매일 같은 추천을 하면 펨테크 앱이 아님.",
+
+  "data_model": {
+    "user_cycle_input": {
+      "last_period_start_date": {
+        "type": "ISO_8601_date",
+        "required": true,
+        "input_method": "온보딩 단계 4에서 캘린더로 입력",
+        "edit_method": "설정 메뉴 또는 사이클 캘린더 화면에서 수정"
+      },
+      "average_cycle_length": {
+        "type": "integer",
+        "default": 28,
+        "range": [21, 35],
+        "edit_method": "사용자 입력 기반 자동 보정 (3개월 데이터 누적 후)"
+      },
+      "average_period_length": {
+        "type": "integer",
+        "default": 5,
+        "range": [3, 7]
+      },
+      "is_irregular": {
+        "type": "boolean",
+        "default": false,
+        "rationale": "한국 여성 약 30%가 불규칙 사이클. true일 경우 추천 신뢰도 낮춰 표시.",
+        "v1_handling": "true이면 '대략적인 가이드'로 표시. v1.1에서 ML 모델 도입"
+      }
+    },
+    "computed_state": {
+      "current_phase": {
+        "type": "enum",
+        "values": ["menstrual", "follicular", "ovulatory", "luteal"],
+        "computation": "today_date - last_period_start_date 기반 day_of_cycle 산출 후 매핑"
+      },
+      "day_of_cycle": {
+        "type": "integer",
+        "range": [1, 35],
+        "purpose": "오늘이 사이클의 며칠차인지. 화면 상단·캘린더에 표시"
+      },
+      "days_until_next_phase": {
+        "type": "integer",
+        "purpose": "다음 단계까지 남은 일수. '5일 후 배란기 시작' 식으로 표시"
+      },
+      "phase_confidence": {
+        "type": "float",
+        "range": [0.0, 1.0],
+        "purpose": "예측 신뢰도. is_irregular일 경우 0.6 이하. 추천에 반영하지만 사용자에겐 '대략적인 가이드' 정도로만 표시"
+      }
+    }
+  },
+
+  "phases": [
+    {
+      "id": "menstrual",
+      "korean_name": "월경기",
+      "metaphor": "겨울",
+      "emoji": "🌑",
+      "default_day_range": [1, 5],
+      "color_token": "OwnerColors.cocoa800",
+      "hormone_state": {
+        "estrogen": "lowest",
+        "progesterone": "lowest",
+        "energy_level": "low",
+        "common_symptoms": ["피로", "복통", "감정 기복", "수면 욕구 증가"]
+      },
+      "recommendation_profile": {
+        "workout_intensity": "very_low",
+        "workout_types_priority": ["stretching", "yoga", "breathing"],
+        "workout_types_avoid": ["hiit", "heavy_strength"],
+        "food_focus": ["철분 (붉은 고기, 시금치)", "따뜻한 음료", "생강·계피"],
+        "food_avoid": ["과한 카페인", "찬 음식"],
+        "rest_emphasis": "high",
+        "sleep_target_hours": 8
+      },
+      "moa_messaging_tone": {
+        "voice": "차분하고 따뜻함",
+        "examples": [
+          "오늘은 누워있어도 괜찮아",
+          "몸이 무거운 거 자연스러워",
+          "따뜻한 차 한 잔, 어때?",
+          "잘 쉬는 것도 운동이야"
+        ],
+        "avoid": ["힘내", "이겨내자", "도전!"]
+      },
+      "moa_visual_state": {
+        "expression": "sleepy",
+        "decorations": ["💤"],
+        "animation_intensity": "low"
+      }
+    },
+    {
+      "id": "follicular",
+      "korean_name": "난포기",
+      "metaphor": "봄",
+      "emoji": "🌱",
+      "default_day_range": [6, 13],
+      "color_token": "OwnerColors.beige300",
+      "hormone_state": {
+        "estrogen": "rising",
+        "progesterone": "low",
+        "energy_level": "rising",
+        "common_symptoms": ["에너지 회복", "기분 상승", "새 도전 욕구"]
+      },
+      "recommendation_profile": {
+        "workout_intensity": "moderate_to_high",
+        "workout_types_priority": ["cardio", "strength_training", "new_challenges"],
+        "workout_types_avoid": [],
+        "food_focus": ["복합탄수화물 (퀴노아, 현미)", "신선 과일 채소", "발효식품"],
+        "food_avoid": [],
+        "rest_emphasis": "moderate",
+        "sleep_target_hours": 7
+      },
+      "moa_messaging_tone": {
+        "voice": "밝고 설레는 톤",
+        "examples": [
+          "오늘 새로운 거 해볼까?",
+          "에너지가 올라오는 게 느껴져?",
+          "지금이 도전하기 좋은 때야",
+          "새 운동 한 번 시도해봐"
+        ],
+        "avoid": ["천천히", "쉬어도 돼"]
+      },
+      "moa_visual_state": {
+        "expression": "happy",
+        "decorations": ["🌱", "✨"],
+        "animation_intensity": "moderate"
+      }
+    },
+    {
+      "id": "ovulatory",
+      "korean_name": "배란기",
+      "metaphor": "여름",
+      "emoji": "☀️",
+      "default_day_range": [14, 16],
+      "color_token": "OwnerColors.coral500",
+      "hormone_state": {
+        "estrogen": "peak",
+        "lh": "surge",
+        "testosterone": "elevated",
+        "energy_level": "peak",
+        "common_symptoms": ["최고 컨디션", "자신감", "사회성 증가"]
+      },
+      "recommendation_profile": {
+        "workout_intensity": "high",
+        "workout_types_priority": ["hiit", "running", "heavy_strength"],
+        "workout_types_avoid": [],
+        "food_focus": ["필수 지방산 (아보카도, 견과류)", "비타민 C", "충분한 단백질"],
+        "food_avoid": [],
+        "rest_emphasis": "low",
+        "sleep_target_hours": 7
+      },
+      "moa_messaging_tone": {
+        "voice": "에너지 넘치는 톤",
+        "examples": [
+          "오늘 PR 깨자!",
+          "지금 컨디션이 최고야",
+          "한계 한 번 넘어볼까?",
+          "오늘 모인 모임 다 가도 돼"
+        ],
+        "avoid": ["무리하지 마"]
+      },
+      "moa_visual_state": {
+        "expression": "star_eyes",
+        "decorations": ["⭐", "🔥"],
+        "animation_intensity": "high"
+      }
+    },
+    {
+      "id": "luteal",
+      "korean_name": "황체기",
+      "metaphor": "가을",
+      "emoji": "🍂",
+      "default_day_range": [17, 28],
+      "sub_phases": [
+        {
+          "id": "luteal_early",
+          "day_range_within": [1, 7],
+          "energy": "still_high",
+          "note": "황체기 전반은 컨디션 양호"
+        },
+        {
+          "id": "luteal_late",
+          "day_range_within": [8, 12],
+          "energy": "declining",
+          "note": "PMS 가능성 증가. 추천 더 부드럽게"
+        }
+      ],
+      "color_token": "OwnerColors.accentLavender",
+      "hormone_state": {
+        "estrogen": "declining",
+        "progesterone": "high",
+        "energy_level": "declining",
+        "common_symptoms": ["PMS (후반)", "단 거 욕구", "감정 기복", "수면 변화"]
+      },
+      "recommendation_profile": {
+        "workout_intensity": "moderate_then_low",
+        "workout_types_priority": ["pilates", "yoga", "walking"],
+        "workout_types_avoid": ["hiit (후반)", "heavy_strength (후반)"],
+        "food_focus": ["다크 초콜릿 (소량)", "마그네슘 (호박씨, 견과류)", "복합탄수화물"],
+        "food_avoid": ["과한 설탕", "알코올 (PMS 악화)"],
+        "rest_emphasis": "moderate_to_high",
+        "sleep_target_hours": 8
+      },
+      "moa_messaging_tone": {
+        "voice": "이해하고 위로하는 톤",
+        "examples": [
+          "단 거 땡기는 거 자연스러워. 한 조각 OK",
+          "황체기라서 그래. 자책하지 마",
+          "천천히 가도 괜찮아",
+          "오늘은 가벼운 산책 어때?"
+        ],
+        "avoid": ["참아", "조절해", "힘내자"]
+      },
+      "moa_visual_state": {
+        "expression_early": "default",
+        "expression_late": "sleepy",
+        "decorations_early": ["🍂"],
+        "decorations_late": ["🍂", "💤"],
+        "animation_intensity": "moderate"
+      }
+    }
+  ],
+
+  "computation_logic": {
+    "phase_assignment_algorithm": {
+      "input": ["last_period_start_date", "today_date", "average_cycle_length", "average_period_length"],
+      "steps": [
+        "1. days_since_period = today - last_period_start_date",
+        "2. day_of_cycle = (days_since_period % average_cycle_length) + 1",
+        "3. menstrual: 1 ~ average_period_length",
+        "4. follicular: (average_period_length + 1) ~ (cycle_length / 2 - 2)",
+        "5. ovulatory: (cycle_length / 2 - 1) ~ (cycle_length / 2 + 1)",
+        "6. luteal: (cycle_length / 2 + 2) ~ cycle_length"
+      ],
+      "edge_cases": {
+        "no_period_input": "기본 추천 (general_lifestyle) 모드. 사이클 캘린더 비활성화",
+        "irregular_user": "phase_confidence = 0.5. UI에 '대략적인 가이드' 표시",
+        "missed_period_alert": "예상 다음 생리일 + 7일 경과 시 사용자에게 입력 업데이트 요청"
+      }
+    },
+    "recommendation_engine_priority": {
+      "purpose": "여러 추천 후보 중 하나를 선택하는 우선순위 규칙",
+      "rules": [
+        "1. user_goal (온보딩에서 선택) 일치 여부",
+        "2. current_phase의 workout_types_priority에 포함되는가",
+        "3. 어제 추천한 것과 다른가 (다양성)",
+        "4. 사용자가 과거 완료한 운동인가 (재추천 가산점)",
+        "5. 시간대 적합성 (아침/점심/저녁)"
+      ]
+    }
+  },
+
+  "visual_indicators": {
+    "purpose": "사용자가 항상 자기 사이클 위치를 인지할 수 있게 하는 UI 장치",
+    "locations": [
+      {
+        "screen": "08_home_character",
+        "location": "헤더 우측",
+        "format": "phase_emoji + day_of_cycle + '/' + cycle_length",
+        "example": "🍂 22/28"
+      },
+      {
+        "screen": "13_cycle_calendar (NEW)",
+        "location": "전체 화면",
+        "format": "28일 원형 또는 가로 바. 4단계 컬러 코딩. 오늘 위치 강조."
+      },
+      {
+        "screen": "06_morning_ritual_mood",
+        "location": "상단 라벨",
+        "format": "현재 단계 + 오늘 며칠차",
+        "example": "황체기 22일차 — 컨디션 가라앉을 거예요"
+      }
+    ]
+  },
+
+  "ux_principles": {
+    "transparency": "사용자에게 '왜 이 추천인지' 항상 한 줄로 설명. '황체기라 격한 운동은 피해요' 같은 인과 설명",
+    "consent": "사이클 데이터는 가장 민감. 매 입력 시 '이 데이터는 로컬에만 저장됩니다' 짧게 표시",
+    "non_judgement": "어떤 단계에서도 '게으르다', '못한다' 같은 평가 메시지 금지",
+    "flexibility": "추천을 사용자가 거부하면 다른 옵션 제시. 강요 X"
+  },
+
+  "depends_on": [],
+  "depended_by": ["03_WORKOUT_MATRIX", "docs/design/owner-mock/06_morning_ritual_mood.json", "docs/design/owner-mock/08_home_character.json", "13_cycle_calendar.json (신규 화면, 미작성)"]
+}

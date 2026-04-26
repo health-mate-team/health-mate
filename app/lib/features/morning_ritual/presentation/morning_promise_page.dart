@@ -5,7 +5,7 @@ import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 명세: [오우너 목업디벨롭파일/07_morning_ritual_promise.json]
+/// 명세: [docs/design/owner-mock-develop/07_morning_ritual_promise.json]
 
 String? _normalizeGoalId(String? raw) {
   switch (raw) {

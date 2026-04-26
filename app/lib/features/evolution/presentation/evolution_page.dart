@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
-/// 명세: [오우너 목업디벨롭파일/12_evolution.json] — 단색 단계 전환만 사용 (그라디언트 없음).
+/// 명세: [docs/design/owner-mock-develop/12_evolution.json] — 단색 단계 전환만 사용 (그라디언트 없음).
 class _StageData {
   const _StageData({
     required this.icon,
