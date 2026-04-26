@@ -5,7 +5,7 @@ import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 명세: [오우너 목업디벨롭파일/04_onboarding_goal.json]
+/// 명세: [docs/design/owner-mock-develop/04_onboarding_goal.json]
 class _GoalOption {
   const _GoalOption({
     required this.id,

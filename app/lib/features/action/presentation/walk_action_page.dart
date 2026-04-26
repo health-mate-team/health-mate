@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
-/// 명세: [오우너 목업디벨롭파일/10_action_walk.json]
+/// 명세: [docs/design/owner-mock-develop/10_action_walk.json]
 enum _WalkUiPhase { beforeStart, inProgress, completed }
 
 int _xpForWalkSeconds(int seconds) {

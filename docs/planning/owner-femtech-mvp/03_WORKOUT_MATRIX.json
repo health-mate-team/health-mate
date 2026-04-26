@@ -1,0 +1,311 @@
+{
+  "$schema": "./schemas/workout_matrix.schema.json",
+  "module": "workout_matrix",
+  "version": "1.0.0",
+  "purpose": "MVP에 필요한 운동 콘텐츠 명세. 4단계 × 운동 종류로 매트릭스 구성. 각 영상의 길이·강도·장비·촬영 비용 추정 포함.",
+  "principle": "5분 이하, 한국 정서, 직장 휴식 시간에 가능. 30대 직장인 페인포인트 '시간 부족' 정조준.",
+
+  "production_targets": {
+    "mvp_v1_0_minimum": {
+      "total_videos": 20,
+      "rationale": "4단계 × 5종류 = 20. MVP 출시 최소량. 사용자가 한 사이클(28일) 동안 '겹치지 않는다'는 느낌 받게 하는 최소.",
+      "production_cost_estimate_krw": "트레이너 1명 8시간 촬영 + 편집 외주 = 약 200-300만원",
+      "production_method": "PT 트레이너 1명과 하루 일괄 촬영. 의상 4벌(단계별 컬러 코딩). 5분 영상 × 20개 = 약 100분 분량. 편집 시간 영상당 1시간 = 20시간."
+    },
+    "v1_1_expansion": {
+      "total_videos": 40,
+      "additions": "각 단계 × 종류에서 2개 옵션 (다양성). 후반에 '쿨다운', '워밍업' 카테고리 추가.",
+      "trigger": "베타 H1 + H2 합격 후 제작 시작"
+    }
+  },
+
+  "matrix": [
+    {
+      "workout_type": "stretching_yoga",
+      "korean_name": "스트레칭 / 요가",
+      "intensity_baseline": "low",
+      "equipment": "매트 (옵션)",
+      "phases": {
+        "menstrual": {
+          "priority": "core",
+          "duration_seconds": 300,
+          "title_suggestion": "월경기 따뜻한 5분 요가",
+          "description_for_user": "복부와 허리 통증 완화에 도움되는 부드러운 동작",
+          "production_priority": 1,
+          "moves": ["Child's Pose", "Cat-Cow", "Supine Twist", "Legs-up-the-Wall"]
+        },
+        "follicular": {
+          "priority": "warmup",
+          "duration_seconds": 240,
+          "title_suggestion": "난포기 활기찬 워밍업 스트레칭",
+          "description_for_user": "본격 운동 전 가볍게 몸 깨우기",
+          "production_priority": 2,
+          "moves": ["Sun Salutation A", "Dynamic Lunge", "Arm Circles"]
+        },
+        "ovulatory": {
+          "priority": "cooldown",
+          "duration_seconds": 240,
+          "title_suggestion": "배란기 운동 후 쿨다운",
+          "description_for_user": "고강도 운동 후 회복 스트레칭",
+          "production_priority": 3,
+          "moves": ["Forward Fold", "Pigeon Pose", "Supine Hamstring Stretch"]
+        },
+        "luteal": {
+          "priority": "core",
+          "duration_seconds": 300,
+          "title_suggestion": "황체기 차분한 5분 요가",
+          "description_for_user": "PMS 완화와 마음 진정에 좋은 동작",
+          "production_priority": 1,
+          "moves": ["Reclined Butterfly", "Seated Forward Fold", "Spinal Twist", "Savasana"]
+        }
+      }
+    },
+    {
+      "workout_type": "light_cardio",
+      "korean_name": "가벼운 카디오 (산책 가이드)",
+      "intensity_baseline": "low_moderate",
+      "equipment": "운동화",
+      "phases": {
+        "menstrual": {
+          "priority": "soft",
+          "duration_seconds": 300,
+          "title_suggestion": "월경기 천천히 걷기 5분",
+          "description_for_user": "느린 페이스의 가이드 산책. 통증 완화에 도움",
+          "production_priority": 3,
+          "format": "audio_guide_only",
+          "audio_cues": ["1분 천천히", "2분 호흡 맞추기", "3분 자연스러운 페이스", "4분 깊게 호흡", "5분 마무리"]
+        },
+        "follicular": {
+          "priority": "main",
+          "duration_seconds": 300,
+          "title_suggestion": "난포기 빠르게 걷기 5분",
+          "description_for_user": "심박수를 살짝 올리는 활기찬 워킹",
+          "production_priority": 1,
+          "format": "audio_guide_only"
+        },
+        "ovulatory": {
+          "priority": "soft",
+          "duration_seconds": 300,
+          "title_suggestion": "배란기 회복 산책",
+          "description_for_user": "고강도 운동 사이 회복일에",
+          "production_priority": 4,
+          "format": "audio_guide_only"
+        },
+        "luteal": {
+          "priority": "main",
+          "duration_seconds": 300,
+          "title_suggestion": "황체기 마음 진정 산책",
+          "description_for_user": "기분 안정에 좋은 자연 속 걷기 가이드",
+          "production_priority": 2,
+          "format": "audio_guide_only"
+        }
+      }
+    },
+    {
+      "workout_type": "strength_training",
+      "korean_name": "근력 운동 (밴드/체중)",
+      "intensity_baseline": "moderate_high",
+      "equipment": "탄력밴드 (옵션) 또는 맨몸",
+      "phases": {
+        "menstrual": {
+          "priority": "skip",
+          "rationale": "월경기 근력 운동은 통증 가능성. 추천 안 함."
+        },
+        "follicular": {
+          "priority": "main",
+          "duration_seconds": 300,
+          "title_suggestion": "난포기 5분 근력 빌드업",
+          "description_for_user": "이 시기에 근육이 가장 잘 성장합니다",
+          "production_priority": 1,
+          "moves": ["Squat", "Glute Bridge", "Push-up Modified", "Plank"]
+        },
+        "ovulatory": {
+          "priority": "main",
+          "duration_seconds": 300,
+          "title_suggestion": "배란기 강한 근력 5분",
+          "description_for_user": "최고 컨디션, 한계까지 도전",
+          "production_priority": 1,
+          "moves": ["Jump Squat", "Tricep Dip", "Push-up", "Side Plank"]
+        },
+        "luteal": {
+          "priority": "soft",
+          "duration_seconds": 300,
+          "title_suggestion": "황체기 가벼운 근력 유지",
+          "description_for_user": "강도 낮춰서 페이스 유지",
+          "production_priority": 2,
+          "moves": ["Wall Sit", "Bird Dog", "Modified Plank"]
+        }
+      }
+    },
+    {
+      "workout_type": "hiit",
+      "korean_name": "고강도 인터벌 (HIIT)",
+      "intensity_baseline": "high",
+      "equipment": "맨몸",
+      "phases": {
+        "menstrual": {
+          "priority": "skip",
+          "rationale": "월경기 고강도는 신체 부담. 추천 안 함."
+        },
+        "follicular": {
+          "priority": "intro",
+          "duration_seconds": 300,
+          "title_suggestion": "난포기 HIIT 입문 5분",
+          "description_for_user": "20초 운동 + 10초 휴식 × 8라운드",
+          "production_priority": 3,
+          "moves": ["Mountain Climber", "High Knees", "Squat Jump", "Burpee Modified"]
+        },
+        "ovulatory": {
+          "priority": "main",
+          "duration_seconds": 300,
+          "title_suggestion": "배란기 풀 HIIT 5분",
+          "description_for_user": "타바타: 20초 ON / 10초 OFF",
+          "production_priority": 1,
+          "moves": ["Burpee", "Jump Squat", "Plank to Push-up", "Tuck Jump"]
+        },
+        "luteal": {
+          "priority": "skip",
+          "rationale": "황체기는 회복기. HIIT 권장 안 함."
+        }
+      }
+    },
+    {
+      "workout_type": "breathing_meditation",
+      "korean_name": "호흡 / 명상",
+      "intensity_baseline": "very_low",
+      "equipment": "없음",
+      "phases": {
+        "menstrual": {
+          "priority": "core",
+          "duration_seconds": 180,
+          "title_suggestion": "월경기 통증 완화 호흡 3분",
+          "description_for_user": "4-7-8 호흡법으로 신경계 진정",
+          "production_priority": 2,
+          "format": "audio_guide_only"
+        },
+        "follicular": {
+          "priority": "short",
+          "duration_seconds": 120,
+          "title_suggestion": "하루를 여는 2분 호흡",
+          "description_for_user": "에너지 깨우는 빠른 호흡",
+          "production_priority": 4,
+          "format": "audio_guide_only"
+        },
+        "ovulatory": {
+          "priority": "short",
+          "duration_seconds": 120,
+          "title_suggestion": "운동 전 집중 2분",
+          "description_for_user": "고강도 운동 전 정신 준비",
+          "production_priority": 4,
+          "format": "audio_guide_only"
+        },
+        "luteal": {
+          "priority": "core",
+          "duration_seconds": 180,
+          "title_suggestion": "황체기 PMS 진정 호흡 3분",
+          "description_for_user": "감정 기복 완화에 좋은 깊은 호흡",
+          "production_priority": 2,
+          "format": "audio_guide_only"
+        }
+      }
+    }
+  ],
+
+  "production_priority_order": {
+    "purpose": "20개 영상을 어떤 순서로 제작할지. 1순위부터 시작해 5단계로 그룹화.",
+    "groups": [
+      {
+        "priority": 1,
+        "videos": [
+          "stretching_yoga × menstrual",
+          "stretching_yoga × luteal",
+          "light_cardio × follicular",
+          "strength_training × follicular",
+          "strength_training × ovulatory",
+          "hiit × ovulatory"
+        ],
+        "rationale": "각 단계의 코어 운동. 사용자가 가장 자주 만날 추천."
+      },
+      {
+        "priority": 2,
+        "videos": [
+          "stretching_yoga × follicular",
+          "light_cardio × luteal",
+          "strength_training × luteal",
+          "breathing × menstrual",
+          "breathing × luteal"
+        ],
+        "rationale": "사이클 후반·전반의 보조 추천. 코어 다음으로 자주 등장."
+      },
+      {
+        "priority": 3,
+        "videos": [
+          "stretching_yoga × ovulatory",
+          "light_cardio × menstrual",
+          "hiit × follicular"
+        ],
+        "rationale": "보조·입문 콘텐츠. 사용자가 코어를 거부하거나 다양성 원할 때."
+      },
+      {
+        "priority": 4,
+        "videos": [
+          "light_cardio × ovulatory",
+          "breathing × follicular",
+          "breathing × ovulatory"
+        ],
+        "rationale": "이번 MVP에서 빠져도 큰 영향 없음. v1.1로 미뤄도 OK."
+      }
+    ]
+  },
+
+  "production_pipeline": {
+    "step_1_pre_production": {
+      "tasks": [
+        "트레이너 섭외 (1명, 여성, 펨테크 친화적 톤)",
+        "스튜디오 예약 (자연광, 흰 배경 또는 코랄/베이지 톤)",
+        "의상 준비 (4단계 컬러 코딩: 검정·베이지·코랄·라벤더)",
+        "동작 시퀀스 1차 검토 (디자인팀 + 트레이너 합의)"
+      ],
+      "duration_days": 5
+    },
+    "step_2_filming": {
+      "tasks": [
+        "하루 일괄 촬영 (8시간)",
+        "20개 영상 = 20개 take. 영상당 평균 25분 (촬영 + 의상 변경)",
+        "B-roll 추가 (모아 캐릭터 합성용 빈 화면)"
+      ],
+      "duration_days": 1
+    },
+    "step_3_post": {
+      "tasks": [
+        "영상 편집 (영상당 1시간 × 20 = 20시간)",
+        "오디오 가이드 녹음 (산책/호흡 영상용, 별도 5-7개)",
+        "타이틀 카드·CTA 화면 디자인 (디자인팀)",
+        "모아 캐릭터 인트로 / 아웃트로 합성 (디자인팀)"
+      ],
+      "duration_days": 7
+    },
+    "total_duration_days": 13,
+    "total_cost_estimate_krw": "300-400만원",
+    "fits_in_mvp_timeline": true
+  },
+
+  "fallback_for_no_video": {
+    "purpose": "영상 제작 지연 시 MVP 출시 가능한 대안",
+    "method": "텍스트 + 일러스트 가이드 카드. 영상 없이도 운동 시작 가능.",
+    "format_example": {
+      "screen": "운동 화면 (영상 슬롯 자리)",
+      "content": [
+        "동작 일러스트 (디자이너 1명이 4시간 안에 20개 SVG 작성 가능)",
+        "동작 이름 + 횟수/시간",
+        "텍스트 큐: '15초 동안 천천히' '호흡 멈추지 않기'",
+        "타이머 (5분 카운트다운)",
+        "모아 캐릭터가 옆에서 같이 함 (애니메이션)"
+      ]
+    },
+    "note": "영상보다 가벼움. 베타 1차에서는 일러스트만으로 시작하고, 사용자가 영상 요구하는지 검증 후 v1.1에 영상 추가도 가능."
+  },
+
+  "depends_on": ["02_CYCLE_OS"],
+  "depended_by": ["docs/design/owner-mock-develop/10_action_walk.json", "docs/design/owner-mock/08_home_character.json"]
+}

@@ -1,0 +1,144 @@
+{
+  "$schema": "./schemas/hypotheses.schema.json",
+  "module": "hypotheses",
+  "version": "1.0.0",
+  "purpose": "MVP가 검증해야 할 4개 가설. 각 가설마다 합격 기준과 측정 방법이 정의됨. 베타 4주 후 합격선 미달 시 출시 미루고 피벗 검토.",
+  "primary_hypothesis_id": "H1",
+  "philosophy": "캐릭터·게이미피케이션은 사용자를 끌어오는 외피. 진짜 검증은 '사용자가 자기 사이클을 이해하고 행동이 변화하는가'.",
+
+  "hypotheses": [
+    {
+      "id": "H1",
+      "category": "femtech_core",
+      "priority": "P0",
+      "is_riskiest_assumption": true,
+      "title": "사용자가 자기 사이클을 이해하게 된다",
+      "statement": "오우너를 4주 사용하면 사용자는 호르몬 주기 4단계와 그것이 자기 컨디션에 미치는 영향을 이전보다 더 잘 이해한다.",
+      "rationale": "이게 안 되면 우리는 펨테크 앱이 아님. 캐릭터만 예쁜 다마고치 앱이 됨. 가장 위험한 가정이므로 가장 먼저 검증.",
+      "success_criteria": {
+        "metric": "self_reported_cycle_understanding",
+        "method": "사용 4주 후 설문 — '오우너 사용 전후로 내 사이클을 이해하는 정도가 어떻게 변했나요?' (5점 척도)",
+        "pass_threshold": 0.70,
+        "pass_threshold_label": "응답자의 70% 이상이 4점/5점 이상",
+        "measurement_window": "베타 시작일 + 28일"
+      },
+      "anti_pattern": "사용자가 '재밌긴 한데 뭐 배웠는지는 모르겠어요'라고 답하면 실패. 캐릭터만 좋고 펨테크 가치는 전달 안 됨.",
+      "if_fails": "운동 추천 알고리즘이 너무 약하거나, 모아 메시지가 사이클 인식을 충분히 표현하지 않음. 콘텐츠 톤 재설계 필요.",
+      "depends_on_modules": ["02_CYCLE_OS", "03_WORKOUT_MATRIX"]
+    },
+    {
+      "id": "H2",
+      "category": "behavior_change",
+      "priority": "P0",
+      "is_riskiest_assumption": false,
+      "title": "추천이 실제 행동으로 이어진다",
+      "statement": "오우너가 추천한 5분 운동을 사용자가 실제로 한다.",
+      "rationale": "앱을 켜는 것과 운동을 하는 것은 다른 행동. 의도-행동 격차(intention-action gap)가 핵심. 추천 따라 행동하지 않으면 펨테크 효과도 없음.",
+      "success_criteria": {
+        "metric": "weekly_workout_completion_rate",
+        "method": "주 단위 추천 운동 완료율. 베타 4주 평균 기준.",
+        "pass_threshold": 0.40,
+        "pass_threshold_label": "주 3회 이상 완료한 사용자 비율 40% 이상",
+        "measurement_window": "베타 1주차 ~ 4주차 평균"
+      },
+      "anti_pattern": "사용자가 앱은 켜는데 운동은 안 함. 알림만 보고 닫음.",
+      "if_fails": "5분이 너무 길거나, 운동 시작 진입장벽 높음, 또는 영상 품질 문제. 30초 운동 미리보기 추가 등 검토.",
+      "depends_on_modules": ["03_WORKOUT_MATRIX"]
+    },
+    {
+      "id": "H3",
+      "category": "retention",
+      "priority": "P1",
+      "is_riskiest_assumption": false,
+      "title": "사용자가 매일 돌아온다",
+      "statement": "오우너의 D7 리텐션은 일반 헬스앱(15-25%)을 상회하는 30% 이상이다.",
+      "rationale": "헬스앱이 되려면 매일 켜져야 함. 캐릭터 + 사이클이라는 2축 록인이 작동하는지 검증.",
+      "success_criteria": {
+        "metric": "retention_d7_d30",
+        "method": "Cohort 분석. 진입일 기준 7일/30일 후 다시 활성 사용자 비율.",
+        "pass_threshold_d7": 0.30,
+        "pass_threshold_d30": 0.20,
+        "measurement_window": "베타 시작 2주차부터 측정 가능"
+      },
+      "anti_pattern": "처음 1주는 호기심으로 켜지만 2주차부터 급감.",
+      "if_fails": "캐릭터의 매일 보는 동기가 약함. 모아의 일별 변화·반응을 더 강화하거나 알림 메시지 개선.",
+      "depends_on_modules": ["02_CYCLE_OS"]
+    },
+    {
+      "id": "H4",
+      "category": "emotional_value",
+      "priority": "P1",
+      "is_riskiest_assumption": false,
+      "title": "사용자가 자기 몸을 미워하지 않게 된다",
+      "statement": "오우너 4주 사용 후, 사용자는 자기 몸과 컨디션 변화를 이전보다 더 긍정적·수용적으로 받아들인다.",
+      "rationale": "기존 다이어트 앱은 자기혐오를 동기로 사용. 오우너의 차별화 본질은 정서적 안전감. NPS는 추천 의도를 통한 정서 가치 종합 측정.",
+      "success_criteria": {
+        "metric_1": "self_care_attitude",
+        "method_1": "'오우너 사용 후 내 몸을 더 잘 돌볼 수 있게 됐다' 5점 척도 응답",
+        "pass_threshold_1": 0.60,
+        "pass_threshold_label_1": "60% 이상이 4점/5점",
+        "metric_2": "nps",
+        "method_2": "Net Promoter Score: 9-10점 비율 - 0-6점 비율",
+        "pass_threshold_2": 50,
+        "pass_threshold_label_2": "NPS 50 이상",
+        "measurement_window": "베타 시작일 + 28일"
+      },
+      "anti_pattern": "사용자가 '재밌었지만 또 칼로리 강박이 생겼다'고 답함.",
+      "if_fails": "메시지 톤·게이미피케이션 보상이 비교/경쟁 중심으로 가고 있음. 톤 가이드라인 강화.",
+      "depends_on_modules": ["02_CYCLE_OS", "docs/design/owner-mock-develop/01_DESIGN_RULES.md"]
+    }
+  ],
+
+  "additional_observations": {
+    "purpose": "합격선과 별개로 4주 동안 수집할 보조 데이터. 정량적 증거 강화용.",
+    "items": [
+      {
+        "id": "OBS_PMS",
+        "metric": "PMS 증상 자가 보고",
+        "method": "베타 시작 시 + 4주 후 PMS 증상 점수 비교 (10점 척도, 옵션)",
+        "target": "+15% 이상 개선 응답",
+        "is_pass_gate": false
+      },
+      {
+        "id": "OBS_SLEEP",
+        "metric": "수면 만족도",
+        "method": "주 1회 짧은 펄스 설문 (3점 척도)",
+        "target": "추세 상승",
+        "is_pass_gate": false
+      },
+      {
+        "id": "OBS_ENERGY",
+        "metric": "주관적 에너지 수준",
+        "method": "사이클 단계별 평균 에너지 자가 보고",
+        "target": "추천 강도와 자가 보고 에너지의 상관관계 검증",
+        "is_pass_gate": false
+      }
+    ]
+  },
+
+  "decision_matrix_after_beta": {
+    "purpose": "베타 종료 시 H1~H4 합격 여부에 따른 의사결정 가이드.",
+    "scenarios": [
+      {
+        "condition": "H1 + H2 모두 합격",
+        "decision": "정식 출시 진행. H3·H4는 출시 후 지속 모니터링.",
+        "next_action": "Phase 5 진입 — 앱스토어 등록, 인플루언서 시딩"
+      },
+      {
+        "condition": "H1만 합격, H2 미합격",
+        "decision": "운동 콘텐츠 재설계 후 베타 4주 추가. 사이클 OS는 작동 중.",
+        "next_action": "5분이 적절한지 재검토, 30초 미리보기 도입, 영상 품질 개선"
+      },
+      {
+        "condition": "H1 미합격",
+        "decision": "출시 보류. 사이클 OS 자체가 사용자에게 가치 전달 못 함. 피벗 검토.",
+        "next_action": "사용자 인터뷰 10명 추가, 메시지·콘텐츠 톤 전면 재설계"
+      },
+      {
+        "condition": "H1 + H2 합격, H3 미합격",
+        "decision": "출시 가능하지만 리텐션 부스터 기능 추가 후 출시.",
+        "next_action": "스트릭, 친구 초대, 사이클 캘린더 위젯 등 강화"
+      }
+    ]
+  }
+}

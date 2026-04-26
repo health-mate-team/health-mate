@@ -1,0 +1,253 @@
+{
+  "$schema": "./schemas/success_metrics.schema.json",
+  "module": "success_metrics",
+  "version": "1.0.0",
+  "purpose": "베타 4주 동안 측정할 모든 지표의 정의·수집 방법·합격 기준. 에이전트가 분석 코드를 작성할 때 SOURCE OF TRUTH.",
+  "principle": "측정할 수 없으면 검증할 수 없음. 모든 가설(01_HYPOTHESES)은 여기 정의된 지표로 평가됨.",
+
+  "measurement_window": {
+    "beta_start_date": "TBD (Day 0)",
+    "beta_end_date": "Day 28",
+    "checkpoint_dates": [
+      { "day": 7, "purpose": "초기 리텐션 + 첫 사이클 진입" },
+      { "day": 14, "purpose": "중간 펄스 설문 (간단)" },
+      { "day": 28, "purpose": "최종 설문 + 합격선 평가" }
+    ]
+  },
+
+  "primary_kpis": [
+    {
+      "id": "KPI_01",
+      "linked_hypothesis": "H1",
+      "name": "사이클 이해도 향상률",
+      "definition": "베타 시작 시 자가 평가한 사이클 이해도(0-5점) 대비, 28일 후 평가가 1점 이상 상승한 사용자 비율",
+      "data_source": "in_app_survey",
+      "measurement_method": {
+        "instrument": "5점 리커트 척도",
+        "question_baseline_day0": "현재 본인의 호르몬 주기 4단계와 그 영향을 얼마나 이해하고 있나요? (1=전혀 모름, 5=잘 이해함)",
+        "question_endline_day28": "오우너 사용 후 본인의 호르몬 주기 4단계와 그 영향을 얼마나 이해하나요? (1=전혀 모름, 5=잘 이해함)",
+        "calculation": "응답자 중 endline ≥ 4 AND endline > baseline 인 비율"
+      },
+      "pass_threshold": 0.70,
+      "pass_label": "70% 이상",
+      "stretch_goal": 0.80,
+      "edge_cases": "baseline에서 이미 5점인 사용자는 분모에서 제외 (개선 여지 없음)"
+    },
+    {
+      "id": "KPI_02",
+      "linked_hypothesis": "H2",
+      "name": "주 3회+ 운동 완료 사용자 비율",
+      "definition": "베타 4주 평균 기준, 주 3회 이상 추천 운동을 완료한 사용자의 비율",
+      "data_source": "app_event_log",
+      "measurement_method": {
+        "event_name": "workout_completed",
+        "event_required_fields": ["user_id", "workout_id", "phase_id", "duration_actual_seconds", "timestamp"],
+        "completion_definition": "duration_actual_seconds >= duration_target_seconds * 0.8 (목표 시간의 80% 이상 진행)",
+        "calculation": "WeeklyCount = 주별 workout_completed 이벤트 수. SUM(주별 ≥ 3인 주) / 4 ≥ threshold"
+      },
+      "pass_threshold": 0.40,
+      "pass_label": "40% 이상",
+      "stretch_goal": 0.55,
+      "edge_cases": "베타 14일 미만 사용자는 분석에서 제외 (충분한 데이터 부족)"
+    },
+    {
+      "id": "KPI_03",
+      "linked_hypothesis": "H3",
+      "name": "D7 / D30 리텐션",
+      "definition": "진입일 기준 7일/30일 후에도 활성 상태인 사용자 비율 (활성 = 앱 1회 이상 오픈)",
+      "data_source": "app_event_log",
+      "measurement_method": {
+        "event_name": "app_open",
+        "cohort_definition": "베타 등록일 기준 D0",
+        "active_definition_d7": "D7 ± 1일 사이에 app_open 이벤트 1회 이상",
+        "active_definition_d30": "D28-D30 사이에 app_open 이벤트 1회 이상",
+        "calculation": "활성 사용자 / 등록 사용자"
+      },
+      "pass_threshold_d7": 0.30,
+      "pass_label_d7": "D7 30% 이상",
+      "pass_threshold_d30": 0.20,
+      "pass_label_d30": "D30 20% 이상",
+      "industry_benchmark": "일반 헬스앱 D7: 15-25% / D30: 8-15%"
+    },
+    {
+      "id": "KPI_04",
+      "linked_hypothesis": "H4",
+      "name": "자기 돌봄 향상 응답률",
+      "definition": "'오우너 사용 후 내 몸을 더 잘 돌볼 수 있게 됐다' 4점/5점 응답 비율",
+      "data_source": "in_app_survey",
+      "measurement_method": {
+        "instrument": "5점 리커트 척도",
+        "question_endline_day28": "오우너 사용 후 본인의 몸을 돌보는 능력이 향상됐다고 느끼시나요? (1=전혀 아님, 5=매우 그렇다)",
+        "calculation": "응답자 중 점수 ≥ 4인 비율"
+      },
+      "pass_threshold": 0.60,
+      "pass_label": "60% 이상"
+    },
+    {
+      "id": "KPI_05",
+      "linked_hypothesis": "H4",
+      "name": "Net Promoter Score (NPS)",
+      "definition": "추천 의도 측정. 9-10점 비율(promoter) - 0-6점 비율(detractor)",
+      "data_source": "in_app_survey",
+      "measurement_method": {
+        "instrument": "0-10점 척도",
+        "question_endline_day28": "오우너를 친구에게 추천할 의향이 얼마나 있나요? (0=전혀, 10=매우 추천)",
+        "calculation": "(promoter_count - detractor_count) / total_count × 100"
+      },
+      "pass_threshold": 50,
+      "pass_label": "NPS 50 이상",
+      "industry_benchmark": "헬스앱 평균 NPS: 30-40"
+    }
+  ],
+
+  "secondary_observations": [
+    {
+      "id": "OBS_01",
+      "name": "PMS 증상 자가 보고 변화",
+      "linked_hypothesis": "H4 (보조)",
+      "definition": "베타 시작 시점과 28일 후 PMS 증상 점수의 차이",
+      "data_source": "in_app_survey",
+      "measurement_method": {
+        "instrument": "10점 척도, 옵션 응답",
+        "question_baseline": "지난 사이클의 PMS 증상이 일상에 얼마나 영향을 줬나요? (0=없음, 10=매우 심함)",
+        "question_endline": "이번 사이클의 PMS 증상이 일상에 얼마나 영향을 줬나요?",
+        "calculation": "endline_score - baseline_score (음수면 개선)"
+      },
+      "interpretation": "추세 관찰용. 합격 게이트 아님. 정성적 인용으로 사용 가능.",
+      "is_pass_gate": false
+    },
+    {
+      "id": "OBS_02",
+      "name": "주관적 에너지 - 사이클 단계 일치율",
+      "linked_hypothesis": "H1 (보조)",
+      "definition": "사용자가 보고하는 일별 에너지 수준이 사이클 단계 추천과 얼마나 일치하는가",
+      "data_source": "in_app_check_in",
+      "measurement_method": {
+        "instrument": "매일 아침 의식에서 5점 척도 (기존 06_morning_ritual_mood 화면 활용)",
+        "calculation": "단계별 평균 자가 보고 에너지 vs CYCLE_OS의 hormone_state.energy_level 매핑 일치율"
+      },
+      "interpretation": "사이클 OS의 정확성 검증. 사용자 데이터로 모델 보정에 활용.",
+      "is_pass_gate": false
+    },
+    {
+      "id": "OBS_03",
+      "name": "수면 만족도 추세",
+      "data_source": "in_app_survey",
+      "measurement_method": {
+        "instrument": "주 1회 펄스 설문 3점 척도",
+        "question": "이번 주 수면 만족도? (1=나쁨, 2=보통, 3=좋음)"
+      },
+      "interpretation": "추세 상승 여부만 관찰. 합격 게이트 아님.",
+      "is_pass_gate": false
+    },
+    {
+      "id": "OBS_04",
+      "name": "단계별 운동 완료율 분포",
+      "data_source": "app_event_log",
+      "measurement_method": {
+        "calculation": "단계(menstrual/follicular/ovulatory/luteal)별 workout_completed 이벤트 수 / 추천 횟수"
+      },
+      "interpretation": "어느 단계에서 사용자가 가장 많이/적게 운동하는지. 콘텐츠 우선순위 조정에 활용.",
+      "is_pass_gate": false
+    }
+  ],
+
+  "qualitative_signals": {
+    "purpose": "정량 지표가 합격해도 정성 신호가 나쁘면 위험. 정량 미달이어도 정성이 강하면 가능성 있음.",
+    "collection_methods": [
+      {
+        "method": "in_app_open_text",
+        "frequency": "베타 종료 시 1회",
+        "questions": [
+          "오우너에서 가장 좋았던 순간이 있다면 한 줄로 적어주세요",
+          "친구에게 오우너를 한 문장으로 설명한다면?",
+          "다시 안 쓸 것 같으면 그 이유는?"
+        ]
+      },
+      {
+        "method": "user_interview",
+        "target_count": 10,
+        "selection": "Promoter 5명 + Detractor 5명",
+        "duration_minutes": 30,
+        "purpose": "지표 뒤의 진짜 이유 파악"
+      }
+    ],
+    "red_flags_to_watch": [
+      "'재밌긴 한데 뭐 배웠는지는 모르겠어요' — H1 작동 안 함",
+      "'알림은 좋은데 운동은 안 하게 돼요' — H2 작동 안 함",
+      "'또 자기관리 강박이 생긴 것 같아요' — H4 역방향",
+      "'친구한테 추천하긴 부끄러워요' — 카테고리 인지 문제"
+    ],
+    "green_flags_to_celebrate": [
+      "'생리 1주일 전이면 자연스레 모아 만나러 와요' — 록인 작동",
+      "'PMS 때 모아 메시지 보고 처음 자책 안 했어요' — H4 작동",
+      "'오늘 황체기라 그런가 보다 하고 받아들이게 됐어요' — H1 작동",
+      "'친구한테 보여줬는데 다 깔겠대요' — 바이럴 가능"
+    ]
+  },
+
+  "analytics_implementation": {
+    "events_required_in_app": [
+      {
+        "name": "app_open",
+        "fields": ["user_id", "timestamp", "session_id"],
+        "purpose": "리텐션 측정 (KPI_03)"
+      },
+      {
+        "name": "workout_completed",
+        "fields": ["user_id", "workout_id", "phase_id", "duration_target_seconds", "duration_actual_seconds", "timestamp"],
+        "purpose": "운동 완료 측정 (KPI_02)"
+      },
+      {
+        "name": "workout_skipped",
+        "fields": ["user_id", "workout_id", "phase_id", "skip_reason_optional", "timestamp"],
+        "purpose": "거부 이유 분석 (보조)"
+      },
+      {
+        "name": "morning_ritual_completed",
+        "fields": ["user_id", "mood_score", "energy_score", "timestamp"],
+        "purpose": "일일 참여 + OBS_02"
+      },
+      {
+        "name": "cycle_phase_changed",
+        "fields": ["user_id", "from_phase", "to_phase", "day_of_cycle", "timestamp"],
+        "purpose": "단계별 행동 분석"
+      },
+      {
+        "name": "survey_response",
+        "fields": ["user_id", "survey_id", "question_id", "response_value", "timestamp"],
+        "purpose": "KPI 01, 04, 05 + OBS_01, 03"
+      }
+    ],
+    "data_storage_principles": [
+      "민감 데이터(생리일, 증상)는 사용자 디바이스 우선 저장",
+      "베타 분석을 위한 서버 동기화는 사용자 동의 필수 + 익명화",
+      "분석 데이터는 user_id를 hash 처리 후 사용",
+      "베타 종료 후 미동의 사용자 데이터 즉시 삭제"
+    ]
+  },
+
+  "pass_fail_decision_protocol": {
+    "purpose": "베타 28일 종료 시 즉시 실행할 판정 프로토콜.",
+    "step_1_collect": "Day 28에 모든 KPI 데이터 동결. 이후 데이터는 분석에서 제외.",
+    "step_2_calculate": "KPI_01 ~ KPI_05 산출. 각각 합격/미달 판정.",
+    "step_3_decision_tree": [
+      {
+        "scenario": "KPI_01 + KPI_02 합격",
+        "action": "정식 출시 진행 (Phase 5)"
+      },
+      {
+        "scenario": "KPI_01 합격 + KPI_02 미달",
+        "action": "운동 콘텐츠 재설계 + 4주 추가 베타"
+      },
+      {
+        "scenario": "KPI_01 미달",
+        "action": "출시 보류 + 사용자 인터뷰 10명 + 사이클 OS 메시징 재설계"
+      }
+    ],
+    "step_4_communicate": "베타 사용자 50명 전원에게 결과 공유 (투명성). Promoter 5명에게 1:1 인터뷰 요청."
+  },
+
+  "depends_on": ["01_HYPOTHESES", "02_CYCLE_OS", "03_WORKOUT_MATRIX"],
+  "depended_by": ["analytics_implementation", "post_beta_decision"]
+}
