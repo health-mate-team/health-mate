@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/owner_colors.dart';
-import '../theme/owner_typography.dart';
-import '../theme/owner_tokens.dart';
+import 'owner_colors.dart';
+import 'owner_typography.dart';
+import 'owner_tokens.dart';
 
 /// 오우너 스트릭 배지 (연속 일수 표시)
 ///

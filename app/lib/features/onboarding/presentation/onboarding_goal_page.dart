@@ -69,7 +69,7 @@ class _OnboardingGoalPageState extends State<OnboardingGoalPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(OwnerPrefsKeys.goalId, id);
     if (!mounted) return;
-    context.go('/onboarding/meet-moa');
+    context.go('/onboarding/cycle');
   }
 
   @override

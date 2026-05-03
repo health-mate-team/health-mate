@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/owner_colors.dart';
-import '../theme/owner_tokens.dart';
+import 'owner_colors.dart';
+import 'owner_tokens.dart';
 
 /// 오우너 스토리 진행 바
 ///

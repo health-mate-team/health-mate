@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/owner_colors.dart';
-import '../theme/owner_tokens.dart';
+import 'owner_colors.dart';
+import 'owner_tokens.dart';
 
 /// 오우너 체크박스 (약속/할일 완료용)
 ///

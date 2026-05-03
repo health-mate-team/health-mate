@@ -1,11 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:health_mate/core/analytics/analytics_event.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/cycle/domain/entities/cycle_phase.dart';
+import 'package:health_mate/features/cycle/presentation/cycle_providers.dart';
+import 'package:health_mate/features/cycle/static_data/phase_profiles.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
 /// 명세: [docs/design/owner-mock-develop/10_action_walk.json]
+/// 사이클 단계가 활성이면 모아 표정·격려 메시지 + 종료 시 workout_completed 송신.
 enum _WalkUiPhase { beforeStart, inProgress, completed }
 
 int _xpForWalkSeconds(int seconds) {
@@ -15,14 +22,14 @@ int _xpForWalkSeconds(int seconds) {
   return 40;
 }
 
-class WalkActionPage extends StatefulWidget {
+class WalkActionPage extends ConsumerStatefulWidget {
   const WalkActionPage({super.key});
 
   @override
-  State<WalkActionPage> createState() => _WalkActionPageState();
+  ConsumerState<WalkActionPage> createState() => _WalkActionPageState();
 }
 
-class _WalkActionPageState extends State<WalkActionPage> {
+class _WalkActionPageState extends ConsumerState<WalkActionPage> {
   _WalkUiPhase _phase = _WalkUiPhase.beforeStart;
   int _seconds = 0;
   Timer? _timer;
@@ -46,6 +53,24 @@ class _WalkActionPageState extends State<WalkActionPage> {
 
   void _endWalk() {
     _timer?.cancel();
+    // 1분 이상 산책했고 cycle 입력이 있을 때만 light_cardio workout_completed 로 기록.
+    // cycle 없으면 임의 phase fallback 대신 이벤트 미송신 — 분석 정직성 유지.
+    // (cycle 없는 사용자의 산책 활동은 별도 generic 이벤트로 향후 분리 예정.)
+    if (_seconds >= 60) {
+      final cycle = ref.read(computedStateNotifierProvider);
+      if (cycle != null) {
+        final phase = cycle.phase;
+        final workoutId = 'light_cardio__${phase.id}';
+        final recorder = ref.read(analyticsRecorderProvider);
+        unawaited(recorder.record(AnalyticsEvent.workoutCompleted(
+          workoutId: workoutId,
+          phase: phase,
+          durationTargetSeconds: 300,
+          durationActualSeconds: _seconds,
+          ts: DateTime.now(),
+        )));
+      }
+    }
     setState(() => _phase = _WalkUiPhase.completed);
   }
 
@@ -85,6 +110,7 @@ class _WalkActionPageState extends State<WalkActionPage> {
         child: switch (_phase) {
           _WalkUiPhase.beforeStart => _BeforeStart(
               key: const ValueKey('before'),
+              cyclePhase: ref.watch(computedStateNotifierProvider)?.phase,
               onStart: _start,
             ),
           _WalkUiPhase.inProgress => _InProgress(
@@ -108,9 +134,31 @@ class _WalkActionPageState extends State<WalkActionPage> {
 }
 
 class _BeforeStart extends StatelessWidget {
-  const _BeforeStart({super.key, required this.onStart});
+  const _BeforeStart({
+    super.key,
+    required this.onStart,
+    this.cyclePhase,
+  });
 
   final VoidCallback onStart;
+  final CyclePhase? cyclePhase;
+
+  String _greeting() {
+    final p = cyclePhase;
+    if (p == null) return '함께 걸으러 가요';
+    return switch (p) {
+      CyclePhase.menstrual => '천천히, 가볍게 걸어볼까요',
+      CyclePhase.follicular => '심박을 살짝 올리는 워킹 어때요',
+      CyclePhase.ovulatory => '활기차게! 오늘 컨디션 최고예요',
+      CyclePhase.luteal => '풍경 보며 마음 진정 산책',
+    };
+  }
+
+  OwnerMoaExpression _expr() {
+    final p = cyclePhase;
+    if (p == null) return OwnerMoaExpression.happy;
+    return moaExpressionFor(p);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,9 +167,9 @@ class _BeforeStart extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 40),
-          const OwnerMoaAvatar(
+          OwnerMoaAvatar(
             size: 140,
-            expression: OwnerMoaExpression.happy,
+            expression: _expr(),
           ),
           const SizedBox(height: OwnerSpacing.xl),
           Text(
@@ -131,7 +179,7 @@ class _BeforeStart extends StatelessWidget {
           ),
           const SizedBox(height: OwnerSpacing.sm),
           Text(
-            '함께 걸으러 가요',
+            _greeting(),
             style: OwnerTypography.bodySm,
             textAlign: TextAlign.center,
           ),

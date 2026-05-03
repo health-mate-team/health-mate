@@ -1,23 +1,27 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/survey/presentation/survey_providers.dart';
 import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// 명세: [docs/design/owner-mock-develop/05_onboarding_meet_moa.json]
 enum _MeetScene { eggIdle, eggCracking, moaAppearing }
 
-class OnboardingMeetMoaPage extends StatefulWidget {
+class OnboardingMeetMoaPage extends ConsumerStatefulWidget {
   const OnboardingMeetMoaPage({super.key});
 
   @override
-  State<OnboardingMeetMoaPage> createState() => _OnboardingMeetMoaPageState();
+  ConsumerState<OnboardingMeetMoaPage> createState() =>
+      _OnboardingMeetMoaPageState();
 }
 
-class _OnboardingMeetMoaPageState extends State<OnboardingMeetMoaPage>
+class _OnboardingMeetMoaPageState extends ConsumerState<OnboardingMeetMoaPage>
     with SingleTickerProviderStateMixin {
   _MeetScene _scene = _MeetScene.eggIdle;
   String _name = '친구';
@@ -59,6 +63,8 @@ class _OnboardingMeetMoaPageState extends State<OnboardingMeetMoaPage>
   Future<void> _finish() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(OwnerPrefsKeys.onboardingDone, true);
+    // 04_SUCCESS_METRICS.measurement_window 의 D0 기록 (1회만).
+    await ref.read(surveyTriggerServiceProvider).ensureBetaStartDate();
     if (!mounted) return;
     context.go('/home');
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/owner_colors.dart';
-import '../theme/owner_typography.dart';
-import '../theme/owner_tokens.dart';
+import 'owner_colors.dart';
+import 'owner_typography.dart';
+import 'owner_tokens.dart';
 
 /// 오우너 퀵 액션 버튼
 ///

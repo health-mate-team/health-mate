@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/owner_colors.dart';
-import '../theme/owner_tokens.dart';
+import 'owner_colors.dart';
 
 /// 모아 캐릭터 아바타
 ///

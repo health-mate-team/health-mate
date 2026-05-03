@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:health_mate/core/theme/owner/owner_design_system.dart';
-import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
-import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/cycle/domain/entities/cycle_phase.dart';
+import 'package:health_mate/features/cycle/presentation/cycle_providers.dart';
+import 'package:health_mate/features/cycle/static_data/phase_profiles.dart';
+import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
+import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
+
 /// 명세: [docs/design/owner-mock-develop/11_evening_ritual.json]
-class EveningRitualPage extends StatefulWidget {
+/// 사이클 단계가 활성이면 단계 라벨 + 수면 권장 시간을 함께 표시.
+class EveningRitualPage extends ConsumerStatefulWidget {
   const EveningRitualPage({super.key});
 
   @override
-  State<EveningRitualPage> createState() => _EveningRitualPageState();
+  ConsumerState<EveningRitualPage> createState() => _EveningRitualPageState();
 }
 
-class _EveningRitualPageState extends State<EveningRitualPage> {
+class _EveningRitualPageState extends ConsumerState<EveningRitualPage> {
   bool _promiseKept = false;
   String? _eveningMood;
   String _promiseText = '오늘의 약속을 아직 정하지 않았어요';
@@ -58,6 +64,10 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
   Widget build(BuildContext context) {
     final borderSubtle = OwnerColors.white.withOpacity(0.15);
     final glassBg = OwnerColors.white.withOpacity(0.08);
+    final cycle = ref.watch(computedStateNotifierProvider);
+    final cycleLabel = cycle == null
+        ? null
+        : '${cycle.phase.koreanName} ${cycle.dayOfCycle}일차 · 수면 ${kPhaseProfiles[cycle.phase]!.sleepTargetHours}시간';
 
     return Scaffold(
       backgroundColor: OwnerColors.cocoa800,
@@ -72,21 +82,46 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
                 OwnerSpacing.base,
                 0,
               ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: OwnerSpacing.sm,
-                  vertical: OwnerSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: OwnerColors.white.withOpacity(0.15),
-                  borderRadius: OwnerRadius.radiusMd,
-                ),
-                child: Text(
-                  '저녁 의식 · 2분',
-                  style: OwnerTypography.overline.copyWith(
-                    color: OwnerColors.coral100,
+              child: Wrap(
+                spacing: OwnerSpacing.xs,
+                runSpacing: OwnerSpacing.xs,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: OwnerSpacing.sm,
+                      vertical: OwnerSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: OwnerColors.white.withOpacity(0.15),
+                      borderRadius: OwnerRadius.radiusMd,
+                    ),
+                    child: Text(
+                      '저녁 의식 · 2분',
+                      style: OwnerTypography.overline.copyWith(
+                        color: OwnerColors.coral100,
+                      ),
+                    ),
                   ),
-                ),
+                  if (cycleLabel != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: OwnerSpacing.sm,
+                        vertical: OwnerSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: kPhaseProfiles[cycle!.phase]!
+                            .colorToken
+                            .withValues(alpha: 0.25),
+                        borderRadius: OwnerRadius.radiusMd,
+                      ),
+                      child: Text(
+                        '${cycle.phase.emoji} $cycleLabel',
+                        style: OwnerTypography.overline.copyWith(
+                          color: OwnerColors.white,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Expanded(

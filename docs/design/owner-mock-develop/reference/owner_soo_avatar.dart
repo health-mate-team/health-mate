@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/owner_colors.dart';
+import 'owner_colors.dart';
 
 /// 수 캐릭터 아바타 (검정 솜뭉치)
 ///

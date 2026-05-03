@@ -37,6 +37,9 @@ docker-compose.override.yml
 *.swp
 *.swo
 
+# ─── Flutter SDK (개발 환경 사본, 저장소에 포함하지 않음) ──
+flutter/
+
 # ─── OS ────────────────────────────────────────────
 .DS_Store
 Thumbs.db

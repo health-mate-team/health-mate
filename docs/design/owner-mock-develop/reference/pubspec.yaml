@@ -1,0 +1,15 @@
+name: owner_design_reference
+description: 오우너 디자인 시스템 v1.1 참고용 위젯 코드 (빌드 대상 아님 — analyzer 가 SDK 심볼을 풀 수 있도록 별도 패키지 컨텍스트만 제공).
+publish_to: 'none'
+version: 0.0.0
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^5.0.0

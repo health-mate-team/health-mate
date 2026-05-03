@@ -130,7 +130,6 @@ class MorningPromisePage extends StatefulWidget {
 
 class _MorningPromisePageState extends State<MorningPromisePage> {
   String? _moodId;
-  String? _goalId;
   late _PromiseRec _promise;
 
   static const _alternatives = <_PromiseRec>[
@@ -165,7 +164,6 @@ class _MorningPromisePageState extends State<MorningPromisePage> {
     final goal = prefs.getString(OwnerPrefsKeys.goalId);
     setState(() {
       _moodId = mood;
-      _goalId = goal;
       _promise = _recommendedPromise(mood, goal);
     });
   }

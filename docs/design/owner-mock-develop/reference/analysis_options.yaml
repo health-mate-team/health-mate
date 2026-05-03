@@ -1,0 +1,14 @@
+# 참고용 위젯 코드 — 본 앱 (`app/`) 의 analyzer 와 분리.
+# 이 폴더는 빌드 대상이 아니라 디자인 명세 (`*.json`) 와 함께 읽기용으로 둔 코드.
+# 따라서 lint/스타일 위반은 무시하고 SDK 심볼만 풀리면 충분.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # 참고용이라 스타일·관례 위반은 모두 info 또는 무시
+    prefer_const_constructors: ignore
+    prefer_const_literals_to_create_immutables: ignore
+    avoid_unnecessary_containers: ignore
+    use_super_parameters: ignore
+    deprecated_member_use: ignore
+    library_private_types_in_public_api: ignore
