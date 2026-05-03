@@ -55,6 +55,7 @@ dependencies:
   # 유틸
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
+  crypto: ^3.0.5
   intl: ^0.20.1
   shared_preferences: ^2.3.3
   connectivity_plus: ^6.1.1
@@ -63,6 +64,9 @@ dependencies:
   # UI
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
+
+  # 음성 안내 (audio_guide 운동: light_cardio, breathing_meditation)
+  flutter_tts: ^4.2.0
 
 dev_dependencies:
   flutter_test:
@@ -75,7 +79,9 @@ dev_dependencies:
   drift_dev: ^2.21.0
   freezed: ^2.5.7
   json_serializable: ^6.8.0
-  retrofit_generator: ^9.1.6
+  # retrofit_generator: 일시 비활성화 — retrofit 4.9.2 / generator 9.7.0 비호환으로 build script 컴파일 실패.
+  # 백엔드 API 연동 시점에 버전 핀 후 재도입.
+  # retrofit_generator: ^9.1.6
 
 flutter:
   uses-material-design: true
