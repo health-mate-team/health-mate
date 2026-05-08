@@ -23,6 +23,12 @@ bool _isPublicRoute(String path) {
       path.startsWith('/onboarding/');
 }
 
+bool _isPublicRoute(String path) {
+  return path == '/splash' ||
+      path == '/login' ||
+      path.startsWith('/onboarding/');
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
