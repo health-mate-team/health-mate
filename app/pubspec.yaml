@@ -13,74 +13,84 @@ dependencies:
 
   # 상태 관리
   flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
-
-  # 로컬 DB (오프라인 퍼스트)
-  drift: ^2.21.0
-  sqlite3_flutter_libs: ^0.5.24
-  path_provider: ^2.1.4
-  path: ^1.9.0
-
-  # 네트워킹
-  dio: ^5.7.0
-  retrofit: ^4.4.1
 
   # 라우팅
   go_router: ^14.6.2
 
-  # 차트 (체중/운동 추이)
-  fl_chart: ^0.69.0
-
-  # 건강 데이터 (HealthKit / Health Connect 통합)
-  health: ^13.3.1
-
-  # 인앱 결제 (RevenueCat)
-  purchases_flutter: ^9.16.0
-
-  # 푸시 알림
-  firebase_core: ^3.8.1
-  firebase_messaging: ^15.1.4
-  flutter_local_notifications: ^18.0.1
-
-  # 카메라 / 이미지 (Before-After 사진)
-  camera: ^0.11.0+2
-  image_picker: ^1.1.2
-
-  # 백그라운드 동기화 (오프라인 Sync)
-  workmanager: ^0.5.2
-
-  # BLE (InBody, Withings — Phase 2)
-  flutter_blue_plus: ^1.34.5
-
-  # 유틸
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
+  # 유틸 (실제 사용 중)
   intl: ^0.20.1
   shared_preferences: ^2.3.3
-  connectivity_plus: ^6.1.1
-  flutter_secure_storage: ^9.2.2
 
+  # ──────────────────────────────────────────────────────────────
+  # Phase 2 활성화 시 주석 해제 — 현재 lib/ 미사용 (UI 동작 테스트 단계)
+  # ──────────────────────────────────────────────────────────────
+  # 로컬 DB (오프라인 퍼스트)
+  # drift: ^2.21.0
+  # sqlite3_flutter_libs: ^0.5.24
+  # path_provider: ^2.1.4
+  # path: ^1.9.0
+  #
+  # 네트워킹
+  dio: ^5.7.0
+  # retrofit: ^4.4.1
+  #
+  # 차트 (체중/운동 추이)
+  # fl_chart: ^0.69.0
+  #
+  # 건강 데이터 (HealthKit / Health Connect 통합)
+  # health: ^13.3.1
+  #
+  # 인앱 결제 (RevenueCat)
+  # purchases_flutter: ^9.16.0
+  #
+  # 푸시 알림 (재활성화 시 desugaring 설정 필요)
+  # firebase_core: ^3.8.1
+  # firebase_messaging: ^15.1.4
+  # flutter_local_notifications: ^18.0.1
+  #
+  # 카메라 / 이미지 (Before-After 사진)
+  # camera: ^0.11.0+2
+  # image_picker: ^1.1.2
+  #
+  # 백그라운드 동기화 (오프라인 Sync) — 0.9.0+ 사용 필수 (0.5.x는 Flutter v1 embedding으로 미컴파일)
+  # workmanager: ^0.9.0+3
+  #
+  # BLE (InBody, Withings)
+  # flutter_blue_plus: ^1.34.5
+  #
+  # 코드 생성 어노테이션
+  # freezed_annotation: ^2.4.4
+  # json_annotation: ^4.9.0
+  # riverpod_annotation: ^2.6.1
+  #
+  # 추가 유틸
+  # connectivity_plus: ^6.1.1
+  flutter_secure_storage: ^9.2.2
+  #
   # UI
-  cached_network_image: ^3.4.1
-  shimmer: ^3.0.0
+  # cached_network_image: ^3.4.1
+  # shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
 
-  # 코드 생성
-  build_runner: ^2.4.13
-  riverpod_generator: ^2.6.2
-  drift_dev: ^2.21.0
-  freezed: ^2.5.7
-  json_serializable: ^6.8.0
-  retrofit_generator: ^9.1.6
+  # ──────────────────────────────────────────────────────────────
+  # Phase 2 활성화 시 주석 해제 — 코드 생성 (현재 *.g.dart / *.freezed.dart 없음)
+  # ──────────────────────────────────────────────────────────────
+  # build_runner: ^2.4.13
+  # riverpod_generator: ^2.6.2
+  # drift_dev: ^2.21.0
+  # freezed: ^2.5.7
+  # json_serializable: ^6.8.0
+  # retrofit_generator: ^9.1.6
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/mascot/
+    - assets/seed/
   fonts:
     - family: Pretendard
       fonts:

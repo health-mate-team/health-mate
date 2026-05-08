@@ -1,0 +1,156 @@
+name: Verify
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'docs/verify-cases/**'
+      - 'docs/verify-results/**'
+      - '.github/workflows/verify.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'docs/verify-cases/**'
+
+jobs:
+  jest:
+    name: Jest 단위테스트
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 의존성 설치
+        working-directory: backend
+        run: npm ci
+
+      - name: Jest 단위테스트
+        working-directory: backend
+        run: npx jest --passWithNoTests --ci
+
+  run-cases:
+    name: run-cases (unit + contract)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 의존성 설치
+        working-directory: backend
+        run: npm ci
+
+      - name: auth_register 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target auth_register --stages unit,contract --ci
+
+      - name: onboarding_complete 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target onboarding_complete --stages unit,contract --ci
+
+      - name: users_me 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target users_me --stages unit,contract --ci
+
+      - name: rituals_morning_mood 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target rituals_morning_mood --stages unit,contract --ci
+
+      - name: rituals_morning_promise 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target rituals_morning_promise --stages unit,contract --ci
+
+      - name: rituals_evening 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target rituals_evening --stages unit,contract --ci
+
+      - name: rituals_today 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target rituals_today --stages unit,contract --ci
+
+      - name: cycle_current 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target cycle_current --stages unit,contract --ci
+
+      - name: stats_today 검증
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/run-cases.ts --target stats_today --stages unit,contract --ci
+
+      - name: 결과 보고서 아티팩트 저장
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-results-${{ github.run_number }}
+          path: docs/verify-results/
+          retention-days: 30
+
+  diff-check:
+    name: diff-results (회귀 감지)
+    runs-on: ubuntu-latest
+    needs: run-cases
+    # run-cases가 새 보고서를 생성한 후 비교
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # PR 대상 브랜치의 이전 보고서도 fetch
+          fetch-depth: 0
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 의존성 설치
+        working-directory: backend
+        run: npm ci
+
+      - name: 이전 보고서 다운로드 (base 브랜치)
+        uses: actions/download-artifact@v4
+        with:
+          name: verify-results-${{ github.run_number }}
+          path: docs/verify-results/
+        continue-on-error: true
+
+      - name: 회귀 감지 (diff-results --ci)
+        working-directory: backend
+        run: |
+          npx ts-node --project scripts/tsconfig.json \
+            scripts/diff-results.ts --ci
+        continue-on-error: true

@@ -13,7 +13,7 @@ class OwnerMoodCard extends StatelessWidget {
   final String emoji;
   final String label;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

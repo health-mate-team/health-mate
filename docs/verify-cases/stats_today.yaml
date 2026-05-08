@@ -1,0 +1,114 @@
+# 케이스 카탈로그 — GET /stats/today
+# 명세: docs/API_SPEC.md#4.7 (Stats — 스탯 & 대시보드)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["GET /stats/today"]
+
+schema_version: 1
+target: endpoint:GET /stats/today
+spec_section: docs/API_SPEC.md#4.7
+phase: p1
+feature: stats
+
+storyboard:
+  summary: |
+    홈 화면 단일 쿼리. user·stats·cycle·today_ritual 4개 객체를 한 번에 반환한다.
+    의식 풀 사이클(기분 기록 → 약속 → 저녁 의식) 완료 후
+    total_xp=70(mood10+evening10+kept50), evening_completed=true, streak≥1이어야 한다.
+  steps:
+    - 사전조건: 의식 풀 사이클 완료 (morning_mood → promise → evening)
+    - 사용자 액션: GET /stats/today
+    - 기대 결과: 200 + data.{ user, stats, cycle, today_ritual } 전체 구조
+  branches:
+    - 의식 완료 후 조회 → 200 + total_xp=70, evening_completed=true, streak≥1
+    - 토큰 없음 → 401
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: onboarding_complete#happy
+    - case_ref: rituals_morning_mood#happy
+    - case_ref: rituals_morning_promise#happy
+    - case_ref: rituals_evening#happy_kept   # 저녁 의식 약속 이행 완료
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 풀 사이클 후 홈 데이터 ────────────────
+  - id: happy_full_cycle
+    name: 의식 풀 사이클 완료 후 → 200 + 4개 객체 + XP 70
+    request:
+      method: GET
+      path: /stats/today
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [user, stats, cycle, today_ritual]
+        properties:
+          user:
+            type: object
+            required: [id, name, email]
+            properties:
+              id:    { type: string, format: uuid }
+              name:  { type: string }
+              email: { type: string }
+            additionalProperties: false
+          stats:
+            type: object
+            required: [energy_score, hydration_score, mood_score, rest_score,
+                       water_cups, total_xp, level, streak]
+            properties:
+              energy_score:    { type: integer }
+              hydration_score: { type: integer }
+              mood_score:      { type: integer }
+              rest_score:      { type: integer }
+              water_cups:      { type: integer }
+              total_xp:        { type: integer, const: 70 }
+              level:           { type: integer, minimum: 1 }
+              streak:          { type: integer, minimum: 1 }
+            additionalProperties: false
+          cycle:
+            type: object
+            required: [current_phase, day_of_cycle, goal_type]
+            properties:
+              current_phase: { type: string, enum: [menstrual, follicular, ovulation, luteal] }
+              day_of_cycle:  { type: integer, minimum: 1 }
+              goal_type:     { type: string }
+            additionalProperties: false
+          today_ritual:
+            type: object
+            required: [morning_mood, morning_promise, evening_completed, promise_kept, xp_earned_today]
+            properties:
+              morning_mood:      { type: integer, const: 4 }
+              morning_promise:   { type: string, const: "오늘 물 8잔 마시기" }
+              evening_completed: { type: boolean, const: true }
+              promise_kept:      { type: boolean, const: true }
+              xp_earned_today:   { type: integer, const: 70 }
+            additionalProperties: false
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask:
+      - user.id
+      - user.email
+      - stats.energy_score
+      - stats.hydration_score
+      - stats.mood_score
+      - stats.rest_score
+      - cycle.current_phase
+      - cycle.day_of_cycle
+
+  # ── 경계: 토큰 없음 ───────────────────────────────
+  - id: error_unauth
+    name: 토큰 없음 → 401 Unauthorized
+    request:
+      method: GET
+      path: /stats/today
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

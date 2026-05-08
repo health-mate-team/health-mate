@@ -1,0 +1,132 @@
+{
+  "mood": [
+    {
+      "id": "seed-mood-0",
+      "groupId": "mood",
+      "displayOrder": 0,
+      "labels": { "ko": "좋아요", "en": "Great" },
+      "emoji": "✨",
+      "numericValue": 5,
+      "metadata": {}
+    },
+    {
+      "id": "seed-mood-1",
+      "groupId": "mood",
+      "displayOrder": 1,
+      "labels": { "ko": "보통", "en": "Okay" },
+      "emoji": "☕",
+      "numericValue": 3,
+      "metadata": {}
+    },
+    {
+      "id": "seed-mood-2",
+      "groupId": "mood",
+      "displayOrder": 2,
+      "labels": { "ko": "피곤", "en": "Tired" },
+      "emoji": "😴",
+      "numericValue": 2,
+      "metadata": {}
+    },
+    {
+      "id": "seed-mood-3",
+      "groupId": "mood",
+      "displayOrder": 3,
+      "labels": { "ko": "지침", "en": "Exhausted" },
+      "emoji": "💧",
+      "numericValue": 1,
+      "metadata": {}
+    }
+  ],
+  "evening_mood": [
+    {
+      "id": "seed-evening-0",
+      "groupId": "evening_mood",
+      "displayOrder": 0,
+      "labels": { "ko": "평온", "en": "Calm" },
+      "emoji": "😌",
+      "numericValue": null,
+      "metadata": {}
+    },
+    {
+      "id": "seed-evening-1",
+      "groupId": "evening_mood",
+      "displayOrder": 1,
+      "labels": { "ko": "기쁨", "en": "Happy" },
+      "emoji": "😊",
+      "numericValue": null,
+      "metadata": {}
+    },
+    {
+      "id": "seed-evening-2",
+      "groupId": "evening_mood",
+      "displayOrder": 2,
+      "labels": { "ko": "뿌듯", "en": "Strong" },
+      "emoji": "💪",
+      "numericValue": null,
+      "metadata": {}
+    },
+    {
+      "id": "seed-evening-3",
+      "groupId": "evening_mood",
+      "displayOrder": 3,
+      "labels": { "ko": "지침", "en": "Tired" },
+      "emoji": "😮‍💨",
+      "numericValue": null,
+      "metadata": {}
+    }
+  ],
+  "goal_option": [
+    {
+      "id": "seed-goal-0",
+      "groupId": "goal_option",
+      "displayOrder": 0,
+      "labels": { "ko": "더 활기차게", "en": "More Energetic" },
+      "emoji": "⚡",
+      "numericValue": null,
+      "metadata": {
+        "accent_color": "statEnergy",
+        "subtitle": "에너지 넘치는 하루를 만들어요",
+        "goal_type": "energy"
+      }
+    },
+    {
+      "id": "seed-goal-1",
+      "groupId": "goal_option",
+      "displayOrder": 1,
+      "labels": { "ko": "건강한 습관", "en": "Healthy Habits" },
+      "emoji": "💧",
+      "numericValue": null,
+      "metadata": {
+        "accent_color": "statHydration",
+        "subtitle": "물 마시기, 식단 챙기기부터 차근차근",
+        "goal_type": "hydration"
+      }
+    },
+    {
+      "id": "seed-goal-2",
+      "groupId": "goal_option",
+      "displayOrder": 2,
+      "labels": { "ko": "잘 쉬고 싶어", "en": "Better Rest" },
+      "emoji": "🌙",
+      "numericValue": null,
+      "metadata": {
+        "accent_color": "statRest",
+        "subtitle": "충분한 수면과 회복에 집중해요",
+        "goal_type": "rest"
+      }
+    },
+    {
+      "id": "seed-goal-3",
+      "groupId": "goal_option",
+      "displayOrder": 3,
+      "labels": { "ko": "몸이 가벼워졌으면", "en": "Feel Lighter" },
+      "emoji": "🌸",
+      "numericValue": null,
+      "metadata": {
+        "accent_color": "accentMint",
+        "subtitle": "꾸준한 운동과 식단 관리로 천천히",
+        "goal_type": "fitness"
+      }
+    }
+  ]
+}

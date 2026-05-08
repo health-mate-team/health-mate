@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:health_mate/core/di/providers.dart';
 import 'package:health_mate/features/action/presentation/walk_action_page.dart';
 import 'package:health_mate/features/action/presentation/water_action_page.dart';
 import 'package:health_mate/features/evolution/presentation/evolution_page.dart';
@@ -14,9 +15,22 @@ import 'package:health_mate/features/onboarding/presentation/onboarding_name_pag
 import 'package:health_mate/features/onboarding/presentation/onboarding_welcome_page.dart';
 import 'package:health_mate/features/splash/presentation/splash_page.dart';
 
+bool _isPublicRoute(String path) {
+  return path == '/splash' ||
+      path == '/login' ||
+      path.startsWith('/onboarding/');
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
+    redirect: (context, state) async {
+      final path = state.uri.path;
+      if (_isPublicRoute(path)) return null;
+      final token = await ref.read(tokenStorageProvider).getAccessToken();
+      if (token == null) return '/onboarding/welcome';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/splash',

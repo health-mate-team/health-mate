@@ -117,6 +117,16 @@ for dir in "${REQUIRED_DIRS[@]}"; do
   [ -d "$dir" ] && ok "dir: $dir" || fail "Missing dir: $dir"
 done
 
+# ─── 7. Backend Jest 단위테스트 ──────────────────────
+echo ""
+echo "▶ [7] Backend Jest 단위테스트"
+
+if command -v node &>/dev/null && [ -f "backend/package.json" ]; then
+  (cd backend && npx jest --passWithNoTests 2>&1) && ok "Jest 단위테스트 PASS" || fail "Jest 단위테스트 FAIL"
+else
+  fail "Node.js 미설치 또는 backend/package.json 없음"
+fi
+
 # ─── 결과 ───────────────────────────────────────────
 echo ""
 echo "════════════════════════════════════════"

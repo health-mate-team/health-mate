@@ -1,0 +1,355 @@
+# verify-feature 라우팅 맵 v1
+# 자연어 입력 → 정규화 대상, 화면↔엔드포인트, 엔드포인트→Phase·feature 매핑.
+# 변경은 PR로 검토. 검증 시작 시 미등록 대상 발견되면 자동 추가 후보 PR 생성.
+#
+# 점진 등록 원칙: 모든 endpoint를 미리 박지 않고, 검증 요청이 들어온 대상부터 등록.
+# 미구현 모듈은 placeholder + status: not_implemented 로 표시 (검증 대상 제외).
+#
+# 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+
+# ──────────────────────────────────────────────────────
+# Phase 정의
+# ──────────────────────────────────────────────────────
+phases:
+  p0:
+    description: Auth + Users + Onboarding (인증·계정·초기 설정)
+    features: [auth, users, onboarding]
+    status: implemented
+  p1:
+    description: Cycle + Rituals + Stats (주기·의식·홈)
+    features: [cycle, rituals, stats]
+    status: implemented
+  p2:
+    description: Actions + Rewards (행동 기록·보상 — 미구현)
+    features: [actions, rewards]
+    status: not_implemented
+  p3:
+    description: Workout + Nutrition (운동·영양 — 미구현)
+    features: [workout, nutrition]
+    status: not_implemented
+  infra:
+    description: 공통 코드(codes 테이블 등)
+    features: [codes]
+    status: implemented
+
+# ──────────────────────────────────────────────────────
+# Feature → 모듈·파일 매핑
+# ──────────────────────────────────────────────────────
+features:
+  auth:
+    backend_module: backend/src/auth
+    flutter_features: [app/lib/features/auth]
+    endpoints:
+      - POST /auth/register
+      - POST /auth/login
+      - POST /auth/refresh
+      - POST /auth/logout
+    screens: []
+    status: implemented
+
+  users:
+    backend_module: backend/src/users
+    flutter_features: [app/lib/features/users]
+    endpoints:
+      - GET /users/me
+      - PATCH /users/me
+    screens: []
+    status: implemented
+
+  onboarding:
+    backend_module: backend/src/onboarding
+    flutter_features: [app/lib/features/onboarding]
+    endpoints:
+      - POST /onboarding/complete
+    screens:
+      - onboarding_welcome_page
+      - onboarding_name_page
+      - onboarding_goal_page
+      - onboarding_meet_moa_page
+    status: implemented
+
+  cycle:
+    backend_module: backend/src/cycle
+    flutter_features: [app/lib/features/cycle]
+    endpoints:
+      - GET /cycle/current
+      - PATCH /cycle/settings
+      - GET /cycle/calendar
+    screens: []
+    status: implemented
+
+  rituals:
+    backend_module: backend/src/rituals
+    flutter_features:
+      - app/lib/features/morning_ritual
+      - app/lib/features/evening_ritual
+    endpoints:
+      - GET /rituals/today
+      - POST /rituals/morning/mood
+      - POST /rituals/morning/promise
+      - POST /rituals/evening
+    screens:
+      - morning_mood_page
+      - morning_promise_page
+      - evening_ritual_page
+    status: implemented
+
+  stats:
+    backend_module: backend/src/stats
+    flutter_features: [app/lib/features/home]
+    endpoints:
+      - GET /stats/today
+    screens:
+      - home_character_page
+    status: implemented
+
+  codes:
+    backend_module: backend/src/codes
+    flutter_features: [app/lib/features/codes]
+    endpoints:
+      - GET /codes
+      - GET /codes/:groupId
+    screens: []
+    status: implemented
+
+  # ── P2 (미구현 — placeholder) ──
+  actions:
+    status: not_implemented
+    flutter_features:
+      - app/lib/features/action   # FE 페이지 mock 존재 (walk/water)
+    todo:
+      - backend/src/actions 모듈 생성
+      - endpoints 등록 (POST /actions/water, /actions/walk/start, /actions/walk/complete, GET /actions/water/today)
+
+  rewards:
+    status: not_implemented
+    flutter_features:
+      - app/lib/features/evolution   # FE evolution_page 존재
+    todo:
+      - backend/src/rewards 모듈
+      - endpoints 등록 (GET /rewards/summary, GET /stats/history)
+
+  # ── P3 (미구현 — placeholder) ──
+  workout:
+    status: not_implemented
+    todo:
+      - 모듈 + endpoints (GET /workout/recommend, POST /workout/complete, /workout/skip)
+
+  nutrition:
+    status: not_implemented
+    todo:
+      - 모듈 + endpoints (GET /nutrition/search, POST /nutrition/logs, GET /nutrition/today)
+
+# ──────────────────────────────────────────────────────
+# 화면 (Flutter Page) 정의
+# ──────────────────────────────────────────────────────
+screens:
+  splash_page:
+    file: app/lib/features/splash/presentation/splash_page.dart
+    aliases: [스플래시, 시작 화면, splash]
+    calls: []   # 토큰 확인 후 라우팅만, 직접 API 호출 없음
+
+  onboarding_welcome_page:
+    file: app/lib/features/onboarding/presentation/onboarding_welcome_page.dart
+    aliases: [온보딩 시작, welcome]
+    calls: []
+
+  onboarding_name_page:
+    file: app/lib/features/onboarding/presentation/onboarding_name_page.dart
+    aliases: [이름 입력, 온보딩 이름]
+    calls: []
+
+  onboarding_goal_page:
+    file: app/lib/features/onboarding/presentation/onboarding_goal_page.dart
+    aliases: [목표 선택, 온보딩 목표]
+    calls: []
+
+  onboarding_meet_moa_page:
+    file: app/lib/features/onboarding/presentation/onboarding_meet_moa_page.dart
+    aliases: [모아 만나기, 온보딩 완료]
+    calls:
+      - POST /onboarding/complete
+      - POST /auth/register   # 가입은 welcome에서, 이 화면은 complete 호출
+
+  morning_mood_page:
+    file: app/lib/features/morning_ritual/presentation/morning_mood_page.dart
+    aliases: [아침 기분, 아침 의식 기분, morning mood]
+    calls:
+      - POST /rituals/morning/mood
+
+  morning_promise_page:
+    file: app/lib/features/morning_ritual/presentation/morning_promise_page.dart
+    aliases: [아침 약속, 약속 확정, morning promise]
+    calls:
+      - POST /rituals/morning/promise
+
+  evening_ritual_page:
+    file: app/lib/features/evening_ritual/presentation/evening_ritual_page.dart
+    aliases: [저녁 의식, 저녁 회고, evening ritual]
+    calls:
+      - POST /rituals/evening
+      - GET /rituals/today
+
+  home_character_page:
+    file: app/lib/features/home/presentation/home_character_page.dart
+    aliases: [홈, 홈 화면, 캐릭터, home]
+    calls:
+      - GET /stats/today
+      - GET /rituals/today
+
+  evolution_page:
+    file: app/lib/features/evolution/presentation/evolution_page.dart
+    aliases: [진화, evolution]
+    calls: []   # P2 — 모듈 구현 후 매핑
+
+  water_action_page:
+    file: app/lib/features/action/presentation/water_action_page.dart
+    aliases: [물 마시기, 수분 기록, water]
+    calls: []   # P2 — 미구현
+
+  walk_action_page:
+    file: app/lib/features/action/presentation/walk_action_page.dart
+    aliases: [산책, 걷기, walk]
+    calls: []   # P2 — 미구현
+
+# ──────────────────────────────────────────────────────
+# 엔드포인트 정의 (구현된 것만)
+# ──────────────────────────────────────────────────────
+endpoints:
+  POST /auth/register:
+    backend_file: backend/src/auth/auth.controller.ts
+    aliases: [회원가입, 가입]
+    feature: auth
+    phase: p0
+
+  POST /auth/login:
+    backend_file: backend/src/auth/auth.controller.ts
+    aliases: [로그인]
+    feature: auth
+    phase: p0
+
+  POST /auth/refresh:
+    backend_file: backend/src/auth/auth.controller.ts
+    aliases: [토큰 갱신, refresh]
+    feature: auth
+    phase: p0
+
+  POST /auth/logout:
+    backend_file: backend/src/auth/auth.controller.ts
+    aliases: [로그아웃]
+    feature: auth
+    phase: p0
+
+  GET /users/me:
+    backend_file: backend/src/users/users.controller.ts
+    aliases: [내 정보, 프로필 조회]
+    feature: users
+    phase: p0
+
+  PATCH /users/me:
+    backend_file: backend/src/users/users.controller.ts
+    aliases: [프로필 수정]
+    feature: users
+    phase: p0
+
+  POST /onboarding/complete:
+    backend_file: backend/src/onboarding/onboarding.controller.ts
+    aliases: [온보딩 완료]
+    feature: onboarding
+    phase: p0
+
+  GET /cycle/current:
+    backend_file: backend/src/cycle/cycle.controller.ts
+    aliases: [사이클 현재 단계, 현재 주기]
+    feature: cycle
+    phase: p1
+
+  PATCH /cycle/settings:
+    backend_file: backend/src/cycle/cycle.controller.ts
+    aliases: [사이클 설정 변경, 목표 변경]
+    feature: cycle
+    phase: p1
+
+  GET /cycle/calendar:
+    backend_file: backend/src/cycle/cycle.controller.ts
+    aliases: [사이클 캘린더, 월 보기]
+    feature: cycle
+    phase: p1
+
+  GET /rituals/today:
+    backend_file: backend/src/rituals/rituals.controller.ts
+    aliases: [오늘 의식 상태, 의식 조회]
+    feature: rituals
+    phase: p1
+
+  POST /rituals/morning/mood:
+    backend_file: backend/src/rituals/rituals.controller.ts
+    aliases: [아침 기분 기록, 기분 입력]
+    feature: rituals
+    phase: p1
+
+  POST /rituals/morning/promise:
+    backend_file: backend/src/rituals/rituals.controller.ts
+    aliases: [약속 확정, 오늘의 약속]
+    feature: rituals
+    phase: p1
+
+  POST /rituals/evening:
+    backend_file: backend/src/rituals/rituals.controller.ts
+    aliases: [저녁 의식 완료, 저녁 회고]
+    feature: rituals
+    phase: p1
+
+  GET /stats/today:
+    backend_file: backend/src/stats/stats.controller.ts
+    aliases: [오늘 스탯, 홈 데이터]
+    feature: stats
+    phase: p1
+
+  GET /codes:
+    backend_file: backend/src/codes/codes.controller.ts
+    aliases: [코드 전체 조회]
+    feature: codes
+    phase: infra
+
+  GET /codes/:groupId:
+    backend_file: backend/src/codes/codes.controller.ts
+    aliases: [코드 그룹 조회]
+    feature: codes
+    phase: infra
+
+# ──────────────────────────────────────────────────────
+# Flow (다중 endpoint 시나리오) — 사용자 흐름 단위
+# ──────────────────────────────────────────────────────
+flows:
+  onboarding_to_home:
+    description: 게스트 가입 → 온보딩 → 홈 진입
+    aliases: [온보딩 흐름, 신규 사용자 흐름]
+    steps:
+      - endpoint: POST /auth/register
+      - screen: onboarding_welcome_page
+      - screen: onboarding_name_page
+      - screen: onboarding_goal_page
+      - endpoint: POST /onboarding/complete
+      - screen: home_character_page
+      - endpoint: GET /stats/today
+
+  daily_ritual_full:
+    description: 하루 의식 풀 사이클 (아침 기분 → 약속 → 저녁 회고)
+    aliases: [의식 풀 사이클, 하루 의식]
+    steps:
+      - endpoint: GET /rituals/today
+      - endpoint: POST /rituals/morning/mood
+      - endpoint: POST /rituals/morning/promise
+      - endpoint: POST /rituals/evening
+      - endpoint: GET /stats/today
+
+# ──────────────────────────────────────────────────────
+# 미등록 대상 처리
+# ──────────────────────────────────────────────────────
+# 검증 시작 시 입력이 본 맵에 없으면:
+# 1. 가장 가까운 후보 3개 제시 (편집 거리 + alias 매칭)
+# 2. 사용자가 "신규 등록" 선택 시 자동 PR 후보 블록 생성
+# 3. 사용자 거부 시 검증 중단

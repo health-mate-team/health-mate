@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:49:11.785Z",
+  "target": "endpoint:GET /stats/today",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_full_cycle",
+          "caseName": "의식 풀 사이클 완료 후 → 200 + 4개 객체 + XP 70",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/stats_today/happy_full_cycle.json"
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_full_cycle",
+          "caseName": "의식 풀 사이클 완료 후 → 200 + 4개 객체 + XP 70",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_full_cycle",
+          "caseName": "의식 풀 사이클 완료 후 → 200 + 4개 객체 + XP 70",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}
