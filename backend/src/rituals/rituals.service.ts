@@ -6,6 +6,7 @@ import {
   CyclePhase,
   localDateString,
 } from '../cycle/cycle.service';
+import { calculateLevel } from '../common/utils/xp-level.util';
 import { DailyRitual } from '../entities/daily-ritual.entity';
 import { DailyStat } from '../entities/daily-stat.entity';
 import { UserCycle } from '../entities/user-cycle.entity';
@@ -96,10 +97,7 @@ export class RitualsService {
     description: string,
   ): Promise<void> {
     stat.totalXp = Number(stat.totalXp) + amount;
-    // Level up thresholds: 300 / 700 / 1500 / 3000
-    const thresholds = [300, 700, 1500, 3000];
-    const currentLevel = thresholds.filter((t) => stat.totalXp >= t).length + 1;
-    stat.level = Math.min(currentLevel, 5);
+    stat.level = calculateLevel(stat.totalXp);
     await this.statRepo.save(stat);
 
     const log = this.xpLogRepo.create({

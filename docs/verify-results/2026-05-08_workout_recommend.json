@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T14:57:52.584Z",
+  "target": "endpoint:GET /workout/recommend",
+  "git_head": "c1aa982",
+  "stages": {
+    "unit": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "운동 추천 조회 → 200",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/workout_recommend/happy.json"
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "운동 추천 조회 → 200",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "운동 추천 조회 → 200",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

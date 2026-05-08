@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T14:56:02.310Z",
+  "target": "endpoint:POST /actions/walk/start",
+  "git_head": "c1aa982",
+  "stages": {
+    "unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_start",
+          "caseName": "산책 시작 → 201 + walk_session_id",
+          "pass": true,
+          "status": 201,
+          "expectedStatus": 201,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/actions_walk/happy_start.json"
+        },
+        {
+          "caseId": "happy_complete",
+          "caseName": "산책 완료 → 200 + xp_earned=30",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/actions_walk/happy_complete.json"
+        },
+        {
+          "caseId": "error_not_found",
+          "caseName": "존재하지 않는 session_id → 404",
+          "pass": true,
+          "status": 404,
+          "expectedStatus": 404,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_start",
+          "caseName": "산책 시작 → 201 + walk_session_id",
+          "pass": true
+        },
+        {
+          "caseId": "happy_complete",
+          "caseName": "산책 완료 → 200 + xp_earned=30",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_start",
+          "caseName": "산책 시작 → 201 + walk_session_id",
+          "pass": true,
+          "status": 201,
+          "expectedStatus": 201,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "happy_complete",
+          "caseName": "산책 완료 → 200 + xp_earned=30",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_not_found",
+          "caseName": "존재하지 않는 session_id → 404",
+          "pass": true,
+          "status": 404,
+          "expectedStatus": 404,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

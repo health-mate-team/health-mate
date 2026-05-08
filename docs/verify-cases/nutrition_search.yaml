@@ -1,0 +1,94 @@
+# 케이스 카탈로그 — GET /nutrition/search
+# 명세: docs/API_SPEC.md#4.10 (Nutrition — 식단)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:GET /nutrition/search
+spec_section: docs/API_SPEC.md#4.10
+phase: p3
+feature: nutrition
+
+storyboard:
+  summary: |
+    사용자가 음식을 검색한다. MVP에서는 in-memory stub 데이터를 반환한다.
+    q 파라미터에 포함된 단어로 필터링 후 limit 개수만큼 반환.
+    빈 검색어도 허용 (전체 목록 반환).
+  steps:
+    - 사전조건: 로그인 완료
+    - 사용자 액션: GET /nutrition/search?q=닭가슴살
+    - 기대 결과: query + results[] 반환
+  branches:
+    - 검색 결과 있음 → 200 + results 배열
+    - 검색 결과 없음 → 200 + results=[]
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy_with_results
+    name: 닭가슴살 검색 → 200 + results 있음
+    request:
+      method: GET
+      path: /nutrition/search
+      auth: required
+      query:
+        q: "닭가슴살"
+        limit: "5"
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [query, results]
+        properties:
+          query: { type: string }
+          results:
+            type: array
+            minItems: 1
+            items:
+              type: object
+              required: [food_id, name, calories_per_100g, protein_g, carbs_g, fat_g, source]
+              properties:
+                food_id:           { type: string }
+                name:              { type: string }
+                calories_per_100g: { type: integer, minimum: 0 }
+                protein_g:         { type: number }
+                carbs_g:           { type: number }
+                fat_g:             { type: number }
+                source:            { type: string }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: []
+
+  - id: happy_no_results
+    name: 없는 음식 검색 → 200 + results=[]
+    request:
+      method: GET
+      path: /nutrition/search
+      auth: required
+      query:
+        q: "zzznotfood"
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [query, results]
+        properties:
+          query:   { type: string }
+          results: { type: array, maxItems: 0 }
+        additionalProperties: false
+    capture_fixture: false
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: GET
+      path: /nutrition/search
+      auth: none
+      query:
+        q: "닭가슴살"
+    expect:
+      status: 401
+    capture_fixture: false

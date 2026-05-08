@@ -29,8 +29,12 @@ const baseDto = (): CompleteOnboardingDto => ({
 describe('OnboardingService', () => {
   let service: OnboardingService;
 
-  const mockSave = jest.fn().mockImplementation(async (e) => e);
-  const mockCreate = jest.fn().mockImplementation((dto) => ({ ...dto }));
+  const mockSave = jest
+    .fn()
+    .mockImplementation((e: unknown) => Promise.resolve(e));
+  const mockCreate = jest
+    .fn()
+    .mockImplementation((dto: unknown) => ({ ...(dto as object) }));
 
   beforeEach(async () => {
     jest.clearAllMocks();

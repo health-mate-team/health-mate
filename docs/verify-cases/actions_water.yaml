@@ -1,0 +1,89 @@
+# 케이스 카탈로그 — POST /actions/water
+# 명세: docs/API_SPEC.md#4.6 (Actions — 데일리 액션)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:POST /actions/water
+spec_section: docs/API_SPEC.md#4.6
+phase: p2
+feature: actions
+
+storyboard:
+  summary: |
+    로그인한 사용자가 물 마시기를 기록한다.
+    cups_added만큼 today_cups_total이 증가하고, hydration_stat 및 XP +5가 반환된다.
+    하루 목표(daily_target_cups=8)와 현재 잔 수도 함께 반환된다.
+  steps:
+    - 사전조건: 로그인 완료 (access_token 보유)
+    - "사용자 액션: POST /actions/water {cups_added: 1}"
+    - "기대 결과: today_cups_total=1, hydration_stat>=50, xp_earned=5"
+  branches:
+    - 정상 기록 → 200 + 물 통계 반환
+    - cups_added=0 (min 위반) → 400
+    - cups_added=21 (max 위반) → 400
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy
+    name: 물 1잔 기록 → 200 + 통계 반환
+    request:
+      method: POST
+      path: /actions/water
+      auth: required
+      body:
+        cups_added: 1
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [today_cups_total, daily_target_cups, hydration_stat, xp_earned, moa_reaction]
+        properties:
+          today_cups_total:  { type: integer, minimum: 1 }
+          daily_target_cups: { type: integer, const: 8 }
+          hydration_stat:    { type: integer, minimum: 0, maximum: 100 }
+          xp_earned:         { type: integer, const: 5 }
+          moa_reaction:      { type: string, minLength: 1 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [moa_reaction]
+
+  - id: error_cups_zero
+    name: cups_added=0 (min 위반) → 400
+    request:
+      method: POST
+      path: /actions/water
+      auth: required
+      body:
+        cups_added: 0
+    expect:
+      status: 400
+    capture_fixture: false
+
+  - id: error_cups_over
+    name: cups_added=21 (max 위반) → 400
+    request:
+      method: POST
+      path: /actions/water
+      auth: required
+      body:
+        cups_added: 21
+    expect:
+      status: 400
+    capture_fixture: false
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: POST
+      path: /actions/water
+      auth: none
+      body:
+        cups_added: 1
+    expect:
+      status: 401
+    capture_fixture: false

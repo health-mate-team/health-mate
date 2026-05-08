@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T14:54:45.371Z",
+  "target": "endpoint:POST /actions/water",
+  "git_head": "c1aa982",
+  "stages": {
+    "unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "물 1잔 기록 → 200 + 통계 반환",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/actions_water/happy.json"
+        },
+        {
+          "caseId": "error_cups_zero",
+          "caseName": "cups_added=0 (min 위반) → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_cups_over",
+          "caseName": "cups_added=21 (max 위반) → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "물 1잔 기록 → 200 + 통계 반환",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "물 1잔 기록 → 200 + 통계 반환",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_cups_zero",
+          "caseName": "cups_added=0 (min 위반) → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_cups_over",
+          "caseName": "cups_added=21 (max 위반) → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

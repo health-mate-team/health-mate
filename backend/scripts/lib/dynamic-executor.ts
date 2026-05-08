@@ -9,7 +9,7 @@ import {
   SetupDef,
 } from './types';
 import { getCases, isFlow, getSteps, parseCaseRef, findCase, loadCatalog, getCaseSetup } from './catalog-loader';
-import { loadMaskedFixture, applyMask } from './fixture-store';
+import { loadMaskedFixture, applyMask, saveFixture, loadFixture } from './fixture-store';
 
 const DEFAULT_BASE_URL = process.env.DYNAMIC_BASE_URL ?? 'http://localhost:3001';
 
@@ -59,14 +59,35 @@ function freshDynamicEmail(): string {
   return `dyn_${Date.now()}_${Math.floor(Math.random() * 9999)}@run-cases.app`;
 }
 
+function getNestedValue(obj: unknown, path: string): unknown {
+  const parts = path.split('.');
+  let cur = obj;
+  for (const part of parts) {
+    if (cur === null || cur === undefined) return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
 function substituteBody(
   body: Record<string, unknown> | undefined,
   freshEmail: string,
 ): Record<string, unknown> | undefined {
   if (!body) return body;
-  return JSON.parse(JSON.stringify(body, (_k, v) =>
-    v === '{{fresh_email}}' ? freshEmail : v,
-  ));
+  return JSON.parse(JSON.stringify(body, (_k, v) => {
+    if (typeof v !== 'string') return v;
+    if (v === '{{fresh_email}}') return freshEmail;
+    const fixtureMatch = v.match(/^\{\{fixture:([^#]+)#([^.]+)\.(.+)\}\}$/);
+    if (fixtureMatch) {
+      const [, catalogId, caseId, fieldPath] = fixtureMatch;
+      const fixture = loadFixture(catalogId, caseId);
+      if (!fixture) return v;
+      const fromData = getNestedValue((fixture as Record<string, unknown>)['data'], fieldPath);
+      if (fromData !== undefined) return fromData;
+      return getNestedValue(fixture, fieldPath) ?? v;
+    }
+    return v;
+  }));
 }
 
 function bodyHasFreshEmailTemplate(body: Record<string, unknown> | undefined): boolean {
@@ -113,13 +134,22 @@ async function runDynamicCase(
     caseToken = await execPreconditions(caseSetup, baseUrl, caseToken, email);
   }
 
-  const { method, path, body, auth } = caseDef.request;
+  const { method, path, body, query, auth } = caseDef.request;
   const substituted = substituteBody(body, email);
   const headers: Record<string, string> = {};
   if (auth === 'required' && caseToken) {
     headers['Authorization'] = `Bearer ${caseToken}`;
   }
-  const res = await httpRequest(method, `${baseUrl}/api${path}`, substituted, headers);
+  const queryStr = query ? '?' + Object.entries(query).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&') : '';
+  const res = await httpRequest(method, `${baseUrl}/api${path}${queryStr}`, substituted, headers);
+
+  // 사전조건 케이스도 fixture 저장 ({{fixture:...}} 치환 지원)
+  if (caseDef.capture_fixture !== false) {
+    const maskPaths = caseDef.fixture_mask ?? [];
+    saveFixture(caseId, caseId, res.body, maskPaths);
+    saveFixture(catalogId, caseId, res.body, maskPaths);
+  }
+
   const newToken =
     ((res.body as Record<string, unknown>)?.['data'] as Record<string, unknown>)?.['access_token'] as string | undefined ??
     caseToken;
@@ -200,13 +230,14 @@ async function runOneCaseDynamic(
   freshEmail?: string,
 ): Promise<{ result: CaseResult; token: string | null }> {
   try {
-    const { method, path, body, auth } = caseDef.request;
+    const { method, path, body, query, auth } = caseDef.request;
     const email = freshEmail ?? freshDynamicEmail();
     const substituted = substituteBody(body, email);
     const headers: Record<string, string> = {};
     if (auth === 'required' && token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await httpRequest(method, `${baseUrl}/api${path}`, substituted, headers);
+    const queryStr = query ? '?' + Object.entries(query).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&') : '';
+    const res = await httpRequest(method, `${baseUrl}/api${path}${queryStr}`, substituted, headers);
     const statusPass = res.status === caseDef.expect.status;
 
     // UNIT fixture와 비교하여 drift 검출 (마스킹 버전 사용)

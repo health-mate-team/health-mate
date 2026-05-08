@@ -24,19 +24,43 @@ import {
   isFlow,
   getCaseSetup,
 } from './catalog-loader';
-import { saveFixture } from './fixture-store';
+import { saveFixture, loadFixture } from './fixture-store';
+import { parseCaseRef as _parseCaseRef } from './catalog-loader';
 import { v4 as uuidv4 } from 'uuid';
 
-// ─── {{fresh_email}} 템플릿 치환 ────────────────────────────
+// ─── 중첩 필드 추출 (dot-path) ───────────────────────────────
+function getNestedValue(obj: unknown, path: string): unknown {
+  const parts = path.split('.');
+  let cur = obj;
+  for (const part of parts) {
+    if (cur === null || cur === undefined) return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
+// ─── {{fresh_email}} + {{fixture:catalog#case.field}} 치환 ───
 function substituteBody(
   body: Record<string, unknown> | undefined,
   ctx: ExecutionContext,
 ): Record<string, unknown> | undefined {
   if (!body) return body;
   const email = ctx.freshEmail ?? '';
-  return JSON.parse(JSON.stringify(body, (_k, v) =>
-    v === '{{fresh_email}}' ? email : v,
-  ));
+  return JSON.parse(JSON.stringify(body, (_k, v) => {
+    if (typeof v !== 'string') return v;
+    if (v === '{{fresh_email}}') return email;
+    const fixtureMatch = v.match(/^\{\{fixture:([^#]+)#([^.]+)\.(.+)\}\}$/);
+    if (fixtureMatch) {
+      const [, catalogId, caseId, fieldPath] = fixtureMatch;
+      const fixture = loadFixture(catalogId, caseId);
+      if (!fixture) return v;
+      // data 래퍼 있으면 data 안에서 찾기
+      const fromData = getNestedValue((fixture as Record<string, unknown>)['data'], fieldPath);
+      if (fromData !== undefined) return fromData;
+      return getNestedValue(fixture, fieldPath) ?? v;
+    }
+    return v;
+  }));
 }
 
 function extractToken(body: unknown): string | null {
@@ -115,6 +139,12 @@ async function runPrecondition(
     lastResponse: result.responseBody,
     freshEmail: localCtx.freshEmail,
   };
+
+  // 사전조건도 capture_fixture 설정이 있으면 fixture 저장 ({{fixture:...}} 치환 지원)
+  if (caseDef.capture_fixture !== false) {
+    const maskPaths = caseDef.fixture_mask ?? [];
+    saveFixture(catalogId, caseId, result.responseBody, maskPaths);
+  }
 
   setCachedContext(chainRootId, caseRef, newCtx);
   return newCtx;

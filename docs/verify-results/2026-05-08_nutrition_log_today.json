@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T14:59:41.555Z",
+  "target": "endpoint:POST /nutrition/logs",
+  "git_head": "c1aa982",
+  "stages": {
+    "unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_log",
+          "caseName": "점심 식사 기록 → 200 + xp_earned=10",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/nutrition_log_today/happy_log.json"
+        },
+        {
+          "caseId": "happy_today",
+          "caseName": "오늘 식단 조회 → 200 + phase_recommendation",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/nutrition_log_today/happy_today.json"
+        },
+        {
+          "caseId": "error_invalid_meal_type",
+          "caseName": "meal_type 잘못된 값 → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_log",
+          "caseName": "점심 식사 기록 → 200 + xp_earned=10",
+          "pass": true
+        },
+        {
+          "caseId": "happy_today",
+          "caseName": "오늘 식단 조회 → 200 + phase_recommendation",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_log",
+          "caseName": "점심 식사 기록 → 200 + xp_earned=10",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "happy_today",
+          "caseName": "오늘 식단 조회 → 200 + phase_recommendation",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_invalid_meal_type",
+          "caseName": "meal_type 잘못된 값 → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

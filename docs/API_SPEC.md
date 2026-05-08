@@ -1,9 +1,10 @@
 # Owner (오우너) Backend API 명세서
 
 > **작성일**: 2026-05-06  
-> **기준 브랜치**: feature/silver_sh (origin/main 동기화 완료)  
-> **백엔드 현황**: NestJS 골격만 구현, 실제 엔드포인트 전무  
-> **앱 현황**: 전체 화면 SharedPreferences 목업 상태, API 연결 없음
+> **최종 업데이트**: 2026-05-09 (P0~P3 구현 완료 + verify-feature 전 단계 PASS 기준)  
+> **기준 브랜치**: feature/silver_sh  
+> **백엔드 현황**: P0~P3 전체 구현 완료 (Auth/Users/Onboarding/Cycle/Rituals/Stats/Actions/Rewards/Workout/Nutrition)  
+> **앱 현황**: 주요 화면 API 연결 완료 (Riverpod Provider + 3계층 data/domain/presentation)
 
 ---
 
@@ -28,7 +29,19 @@
 
 ---
 
-## 1. 변경된 항목 요약
+## 1. 변경 이력
+
+### P0~P3 구현 완료 (2026-05-08~09)
+
+| Phase | 완료 내용 | 검증 |
+|-------|-----------|------|
+| INFRA | Codes 테이블 + CyclePhase enum + Flutter fallback | verify-feature PASS |
+| P0 | Auth + Users + Onboarding, JWT, 게스트 자동가입 | verify-feature PASS |
+| P1 | Cycle OS + 아침/저녁 의식 + Stats/today | verify-feature PASS |
+| P2 | Actions(water/walk) + Rewards + stats/history + Flutter 연동 | verify-feature PASS |
+| P3 | Workout(in-memory) + Nutrition(stub) + Flutter 연동 | verify-feature PASS |
+
+---
 
 ### origin/main → feature/silver_sh 병합 내용 (2026-05-06)
 
@@ -60,25 +73,27 @@
 
 ---
 
-## 2. API 미연결 화면 전체 목록
+## 2. 화면별 API 연결 현황
 
-> 현재 **13개 화면 모두** API 연결 없음. 데이터 저장소 = SharedPreferences (로컬 전용).
+> P0~P3 구현 완료 기준 (2026-05-09)
 
-| # | 화면 ID | 화면명 | Track | 필요한 API 모듈 | 현재 상태 |
-|---|---------|--------|-------|----------------|-----------|
-| 1 | `01_splash` | 스플래시 | A | Auth (토큰 검증) | SharedPrefs 플래그만 |
-| 2 | `02_onboarding_welcome` | 온보딩 환영 | A | — | 순수 UI (API 불필요) |
-| 3 | `03_onboarding_name` | 이름 입력 | A | Users, Onboarding | SharedPrefs 저장 |
-| 4 | `04_onboarding_goal` | 목표 설정 | A | Onboarding | SharedPrefs 저장 |
-| 5 | `05_onboarding_meet_moa` | 모아 만나기 | A | Onboarding, Cycle | SharedPrefs 완료 플래그만 |
-| 6 | `06_morning_ritual_mood` | 아침 기분 체크 | B | Rituals, Cycle | SharedPrefs 저장 |
-| 7 | `07_morning_ritual_promise` | 오늘의 약속 | B | Rituals | 하드코딩 추천 규칙 |
-| 8 | `08_home_character` | 캐릭터 홈 | B | Stats, Cycle, Rewards | SharedPrefs 로드 |
-| 9 | `09_action_water` | 물 마시기 | B | Actions | 로컬 setState만 |
-| 10 | `10_action_walk` | 산책 | B | Actions | 스텁 타이머 |
-| 11 | `11_evening_ritual` | 저녁 의식 | B | Rituals, Rewards | SharedPrefs 저장 |
-| 12 | `12_evolution` | 모아 진화 | B | Rewards | 하드코딩 레벨 규칙 |
-| — | `/login` (미구현) | 로그인 | A | Auth | 라우트만 존재 |
+| # | 화면 ID | 화면명 | 연결 API 모듈 | 상태 |
+|---|---------|--------|--------------|------|
+| 1 | `01_splash` | 스플래시 | Auth (토큰 검증) → `/auth/register` 자동 게스트 가입 | ✅ API 연결 |
+| 2 | `02_onboarding_welcome` | 온보딩 환영 | — | ✅ 순수 UI |
+| 3 | `03_onboarding_name` | 이름 입력 | Onboarding | ✅ API 연결 |
+| 4 | `04_onboarding_goal` | 목표 설정 | Onboarding | ✅ API 연결 |
+| 5 | `05_onboarding_meet_moa` | 모아 만나기 | Onboarding → `POST /onboarding/complete` | ✅ API 연결 |
+| 6 | `06_morning_ritual_mood` | 아침 기분 체크 | Rituals → `POST /rituals/morning/mood` | ✅ API 연결 |
+| 7 | `07_morning_ritual_promise` | 오늘의 약속 | Rituals → `POST /rituals/morning/promise` | ✅ API 연결 |
+| 8 | `08_home_character` | 캐릭터 홈 | Stats → `GET /stats/today`, `GET /rituals/today` | ✅ API 연결 |
+| 9 | `09_action_water` | 물 마시기 | Actions → `POST /actions/water`, `GET /actions/water/today` | ✅ API 연결 |
+| 10 | `10_action_walk` | 산책 | Actions → `POST /actions/walk/start`, `/walk/complete` | ✅ API 연결 |
+| 11 | `11_evening_ritual` | 저녁 의식 | Rituals → `POST /rituals/evening` | ✅ API 연결 |
+| 12 | `12_evolution` | 모아 진화 | Rewards → `GET /rewards/summary` | ✅ API 연결 |
+| 13 | `workout_page` | 운동 | Workout → `GET /workout/recommend`, `POST /workout/complete`, `/skip` | ✅ API 연결 |
+| 14 | `nutrition_page` | 식단 | Nutrition → `GET /nutrition/today`, `POST /nutrition/logs` | ✅ API 연결 |
+| — | `/login` | 로그인 | Auth → `POST /auth/login` | ⚠️ 화면 미구현 (엔드포인트는 존재) |
 
 ---
 
@@ -128,83 +143,70 @@ Authorization: Bearer <JWT_ACCESS_TOKEN>
 
 ---
 
-## 3.5 P2/P3 구현 시 사전 가드 체크리스트
+## 3.5 구현 가드 & 검증 완료 현황
 
-> P0/P1 검증(2026-05-08, `/verify-feature p0 p1 --auto`)에서 발견된 함정을 P2/P3 구현 시 사전 차단하기 위한 가드. 각 카테고리는 실제 사례 기반.
+> P0~P3 전 단계 구현 및 verify-feature PASS 완료 (2026-05-09)  
+> 아래 항목은 실제 구현 과정에서 발생한 함정과 적용된 해결 사례 기록.
 
-### 🐳 A. 인프라 — Docker 빌드 동기화
+### 🐳 A. 인프라 — Docker 빌드 동기화 ✅ 적용 완료
 
-**함정 (P1 사례)**: `update-cycle-settings.dto.ts`의 enum 변경(`weight/mood` → `hydration/rest`)이 src에는 적용됐지만 컨테이너 dist에는 미반영. Jest는 PASS, Docker 환경에서만 silent FAIL.
+**함정 (P1 사례)**: enum 변경이 src에는 반영됐지만 컨테이너 dist에 미반영 → Jest PASS, Docker FAIL.
 
-**원인**: `backend/Dockerfile`은 builder stage에서 `npm run build` → `dist` 생성, runtime은 `dist/main` 실행. `docker-compose.yml`의 `./backend/src:/app/src` mount는 무의미.
+**규칙** (P2/P3 전 단계 준수):
+- [x] src 변경 후 `docker compose up -d --build backend` 필수
+- [x] Jest PASS만으로 완료 처리 금지 — DYNAMIC stage(Docker) 병행 검증
+- [x] verify-feature `--stages unit,contract,dynamic` 3단계 통과 = 완료 기준
 
-**가드**:
-- [ ] **Backend src 변경 후 반드시** `docker compose up -d --build backend` (단순 `restart` 금지)
-- [ ] Stage 1-A (Jest, ts-jest로 src 직접) PASS 만으로 Stage 1-B (Docker dist) 스킵 금지
-- [ ] CI에서 src 변경 PR은 docker rebuild 필수 step
+### 📦 B. 응답 형식 — `{ data }` only ✅ 적용 완료
 
-### 📦 B. 응답 형식 — `{ data }` only
+- [x] 전체 컨트롤러 `return ApiResponse.success(...)` 형식 (raw object 반환 없음)
+- [x] 응답 예시 `{ "data": { ... } }` 형식 통일
+- [x] 에러: NestJS 기본 `{ message, error, statusCode }` (별도 ExceptionFilter 미구현)
 
-**함정**: `ApiResponse.success(data)`는 `{ data }`만 반환하며 `success: true` 키 미발급. 명세에 `{ success: true, data }`로 표기하면 Flutter DTO가 잘못 파싱하거나 명세 불일치 발생.
+### 🔠 C. DTO enum 정합성 — 단일 위치 정의 ✅ 적용 완료
 
-**가드**:
-- [ ] 신규 컨트롤러 메서드는 `return ApiResponse.success(...)` 형식 강제 (raw object 반환 금지)
-- [ ] 명세 응답 예시는 `{ "data": { ... } }` 만 표기 (success 키 추가 금지)
-- [ ] 에러 응답은 NestJS 기본 `{ message, error, statusCode }` — 별도 ExceptionFilter 미구현 상태이므로 명세도 동일 형식 표기
+**P2 완료**:
+- [x] `badge_code`: `backend/src/rewards/enums/badge-code.enum.ts` 단일 정의
+- [x] `goal_type`: `['energy','hydration','rest','fitness']` — onboarding/cycle 통일
 
-### 🔠 C. DTO enum 정합성 — 분산 정의 금지
+**P3 완료**:
+- [x] `meal_type`: `backend/src/nutrition/enums/meal-type.enum.ts` (`breakfast|lunch|dinner|snack`)
+- [x] `workout_type`: `backend/src/workout/enums/workout-type.enum.ts` (`strength_training|cardio|yoga|stretching|light_cardio|hiit|breathing_meditation`)
+- [x] `intensity`: `backend/src/workout/enums/intensity.enum.ts` (`low|moderate|high`)
+- [x] `skip_reason`: `WorkoutSkipDto` `@IsIn([...])` 단일 검증
 
-**함정 (P1 사례)**: `goal_type` enum이 onboarding(`["energy","hydration","rest","fitness"]`)과 cycle/settings(`["energy","weight","mood","fitness"]`)에 분산 정의되어 불일치. 회귀 테스트 누락 시 silent failure.
+### 🔗 C2. Flutter DTO 매핑 — 응답 필드 누락 금지 ✅ 적용 완료
 
-**가드**:
-- [ ] 같은 도메인 enum은 **단일 위치에서 정의**하고 import 재사용 (e.g., `backend/src/cycle/enums/goal-type.enum.ts`)
-- [ ] 또는 **codes 테이블 활용** (P0/P1 INFRA 패턴) — 운영자가 코드 변경 가능한 옵션은 codes로 외부화
-- [ ] **P2 영향 enum**: `cup_size` (water 액션), `walk_intensity`, `badge_code`, `evolution_stage`
-- [ ] **P3 영향 enum**: `meal_type` (breakfast/lunch/dinner/snack), `workout_type`, `workout_intensity`, `skip_reason`
+- [x] P2 DTO: `WaterActionResponse`, `WalkCompleteResponse`, `RewardsSummaryDto` — 전 필드 nullable fallback 포함
+- [x] P3 DTO: `WorkoutRecommendDto` (`alternative: null` 허용), `NutritionLogResponse`, `NutritionTodayDto` (`focus_nutrients: const []` fallback)
+- [x] 신규 fromJson마다 `app/test/widget_test.dart` contract test 추가 (P2 6건, P3 8건 — 총 29/29 PASS)
 
-### 🔗 C2. Flutter DTO 매핑 — 응답 필드 누락 금지
+### 🗄️ D. Entity 컬럼 — default 정책 ✅ 적용 완료
 
-**함정 (P1 사례)**: Backend가 `rest_score`를 추가했지만 `InitialStats.fromJson`이 매핑 누락 → silent ignore. UI 영향 없으면 발견 어려움.
+**P2/P3 신규 엔티티 가드 적용 결과**:
+- [x] `WalkSession.durationMinutes`: `type: 'int', nullable: true, default: null`
+- [x] `WorkoutLog.durationActualMinutes`: `type: 'int', nullable: true, default: null`
+- [x] `WorkoutLog.skipReason`: `type: 'varchar', nullable: true, length: 50`
+- [x] `WalkSession.startedAt/endedAt`: 명시적 type 제거 → TypeORM DB별 자동 타입 (SQLite/PostgreSQL 호환)
 
-**가드**:
-- [ ] 신규 `fromJson` 작성 시 **backend 응답 모든 필드 매핑** + nullable fallback (`as num? ?? default`)
-- [ ] 신규/변경 fromJson마다 `app/test/widget_test.dart`에 **contract test 동시 추가** (backend 실제 응답 fixture로 회귀 보호)
-- [ ] **P2 영향 응답**: `WaterActionResponse` (today_cups_total, hydration_stat, xp_earned, moa_reaction), `WalkCompleteResponse` (energy_stat_delta), `RewardsSummaryDto` (nested level/streak/evolution_stage/badges/xp_log)
-- [ ] **P3 영향 응답**: `WorkoutRecommendDto` (recommendation + alternative + based_on), `NutritionLogResponse`
+> **SQLite↔PostgreSQL 타입 호환 주의**: `timestamptz`(Postgres 전용), `datetime`(SQLite 전용) 모두 불가. `@Column()` 타입 미지정 + TS `Date` 타입으로 TypeORM 자동 선택.
 
-### 🗄️ D. Entity 신규 컬럼 — default 정책 명확화
+### 📅 E. 날짜/타임존 — `localDateString()` ✅ 적용 완료
 
-**함정 (P1 사례)**: `daily_stats.rest_score` 신설 시 default=50 누락하면 기존 행에 NOT NULL 위반.
+- [x] `ActionsService.getOrCreateStat()`: `date ?? localDateString()`
+- [x] `WorkoutService.complete/skip()`: `dto.date ?? localDateString()`
+- [x] `NutritionService.logMeal/getToday()`: `localDateString()` 사용
 
-**가드**:
-- [ ] 신규 컬럼은 `@Column({ default: ..., nullable: false })` 또는 `nullable: true` 중 **명시 선택** (모호 금지)
-- [ ] 누적 카운터(cups, steps, total_xp 등)는 `default: 0`
-- [ ] 외래 ID(walk_session_id, food_id)는 `nullable: true` + 외래 키 제약 명시
-- [ ] 마이그레이션은 dev `synchronize: true`만 사용, **production은 마이그레이션 파일 작성** (CLAUDE.md 규칙)
+### 🎨 F. Flutter AuthGuard ✅ 적용 완료
 
-### 📅 E. 날짜/타임존 — `localDateString()` 강제
+- [x] `app_router.dart` top-level redirect: public 라우트 외 자동 보호
+- [x] 401 핸들러: `api_client.dart` 단일 위치
 
-**함정 (P1 사례)**: KST 환경에서 `new Date().toISOString().split('T')[0]`가 UTC 날짜를 반환 → `day_of_cycle` 계산 오프바이원.
+### ✅ G. 검증 절차 — STATIC + UNIT + CONTRACT + DYNAMIC 4단계 ✅ 완료
 
-**가드**:
-- [ ] 모든 "오늘" 판정/저장은 `backend/src/common/utils/local-date.ts:localDateString()` 헬퍼 사용
-- [ ] **P2 영향**: water/today, walk_session 시작/종료, evening_completed 일자
-- [ ] **P3 영향**: workout_logs.date, meal_logs.date, nutrition/today
-
-### 🎨 F. Flutter UX — 401/AuthGuard 일관성
-
-**가드**:
-- [ ] 신규 보호 라우트는 `app_router.dart` redirect 콜백이 자동 처리 (별도 가드 코드 불필요 — `_isPublicRoute()` 외 라우트는 자동 보호)
-- [ ] 401 핸들러는 `api_client.dart` 단일 위치에서 처리 (`tokenStorage.clearTokens()`) — Phase 2-INFRA-AUTH 도입 시 refresh 흐름 추가
-
-### ✅ G. 검증 절차 — Stage 1-A 통과만으로 종료 금지
-
-**함정**: Jest는 ts-jest로 src 직접 실행 → src의 enum 변경이 즉시 반영. Docker는 dist 사용 → 재빌드 누락 시 silent FAIL.
-
-**가드**:
-- [ ] `/verify-feature p2 --auto` 실행 시 **Stage 1-A + Stage 1-B 둘 다 PASS 확인**
-- [ ] DTO/enum 변경한 PR은 docker rebuild 후 test-phase.sh 회귀 필수
-- [ ] **명세 cross-check**: 응답 BODY 필드를 backend 실제 응답과 1:1 비교 (Flutter DTO만 보고 명세 작성 금지)
+- [x] P2+P3 verify-feature 결과: STATIC ✅ / UNIT ✅ / CONTRACT ✅ / DYNAMIC(PostgreSQL) ✅
+- [x] 카탈로그 9개 전체 ALL PASS (2026-05-09)
+- [x] `app/test/widget_test.dart` 29/29 PASS (Flutter contract)
 
 ---
 
@@ -1016,7 +1018,15 @@ Authorization: Bearer <JWT_ACCESS_TOKEN>
 
 ## 5. 데이터 모델 (Entity)
 
-> TypeORM Entity 설계 기준
+> 실제 구현 코드(`backend/src/entities/`) 기준. TypeORM 필드명은 camelCase, DB 컬럼명은 자동 snake_case 변환.  
+> 마지막 동기화: 2026-05-09 (P0~P3 전체 구현 완료 후)
+
+### ⚠️ 응답 필드명 매핑 주의
+
+XpLog는 Entity 컬럼명(`amount`, `source`)과 API 응답 필드명(`delta`, `reason`)이 다릅니다.  
+서비스 레이어에서 변환: `amount → delta`, `source → reason` (Entity 수정 없이 응답 레이어에서 처리).
+
+---
 
 ### User
 ```typescript
@@ -1024,130 +1034,247 @@ Authorization: Bearer <JWT_ACCESS_TOKEN>
 export class User {
   @PrimaryGeneratedColumn('uuid') id: string;
   @Column({ unique: true }) email: string;
-  @Column() password_hash: string;
+  @Column() password: string;                    // bcrypt 해시 저장
   @Column() name: string;
-  @Column({ type: 'enum', enum: ['energy','hydration','rest','shape'], nullable: true })
-  goal_type: string;
-  @Column({ default: false }) is_onboarding_completed: boolean;
-  @Column({ default: 1 }) level: number;
-  @Column({ default: 0 }) current_xp: number;
-  @Column({ default: 0 }) streak_days: number;
-  @Column({ nullable: true }) streak_last_date: Date;
-  @CreateDateColumn() created_at: Date;
-  @UpdateDateColumn() updated_at: Date;
+  @Column({ default: false }) isOnboardingCompleted: boolean;
+  @CreateDateColumn() createdAt: Date;
+  @UpdateDateColumn() updatedAt: Date;
+  @OneToOne(() => UserCycle, (cycle) => cycle.user, { cascade: true, eager: false })
+  cycle: UserCycle;
 }
 ```
+
+> `goal_type`, `level`, `current_xp`, `streak_days`는 User Entity에 없음. 각각 `UserCycle.goalType`, `DailyStat.level`, `DailyStat.totalXp`, `DailyStat.streak`에서 집계.
+
+---
 
 ### UserCycle
 ```typescript
 @Entity('user_cycles')
 export class UserCycle {
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() user_id: string;
-  @Column({ type: 'date' }) last_period_start_date: string;
-  @Column({ default: 28 }) average_cycle_length: number;
-  @Column({ default: 5 }) average_period_length: number;
-  @Column({ default: false }) is_irregular: boolean;
-  @UpdateDateColumn() updated_at: Date;
+  @Column() userId: string;
+  @Column({ type: 'date' }) lastPeriodStartDate: string;   // 'YYYY-MM-DD'
+  @Column({ default: 28 }) averageCycleLength: number;
+  @Column({ default: 5 }) averagePeriodLength: number;
+  @Column({ default: false }) isIrregular: boolean;
+  @Column({ default: 'energy' }) goalType: string;          // 'energy'|'hydration'|'rest'|'fitness'
+  @CreateDateColumn() createdAt: Date;
+  @UpdateDateColumn() updatedAt: Date;
 }
 ```
+
+---
 
 ### DailyRitual
 ```typescript
 @Entity('daily_rituals')
 export class DailyRitual {
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() user_id: string;
-  @Column({ type: 'date' }) date: string;
-  @Column({ nullable: true }) morning_mood: string;
-  @Column({ nullable: true }) morning_promise_text: string;
-  @Column({ nullable: true }) morning_promise_scheduled_time: string;
-  @Column({ default: 50 }) morning_promise_reward_xp: number;
-  @Column({ default: false }) morning_promise_completed: boolean;
-  @Column({ nullable: true }) evening_mood: string;
-  @Column({ nullable: true }) reflection: string;
-  @Column({ nullable: true }) morning_completed_at: Date;
-  @Column({ nullable: true }) evening_completed_at: Date;
+  @Column() userId: string;
+  @Column({ type: 'date' }) date: string;                          // 'YYYY-MM-DD'
+  @Column({ type: 'integer', nullable: true, default: null }) morningMood: number;   // 1~5
+  @Column({ type: 'text', nullable: true, default: null }) morningMoodAt: string;
+  @Column({ type: 'text', nullable: true, default: null }) morningPromise: string;
+  @Column({ type: 'text', nullable: true, default: null }) morningPromiseAt: string;
+  @Column({ default: false }) eveningCompleted: boolean;
+  @Column({ type: 'text', nullable: true, default: null }) eveningCompletedAt: string;
+  @Column({ default: false }) promiseKept: boolean;
+  @Column({ default: 0 }) xpEarned: number;
+  @CreateDateColumn() createdAt: Date;
+  @UpdateDateColumn() updatedAt: Date;
 }
 ```
+
+---
 
 ### DailyStat
 ```typescript
 @Entity('daily_stats')
 export class DailyStat {
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() user_id: string;
+  @Column() userId: string;
   @Column({ type: 'date' }) date: string;
-  @Column({ default: 80 }) energy: number;
-  @Column({ default: 70 }) hydration: number;
-  @Column({ default: 70 }) rest: number;
-  @Column({ default: 0 }) water_cups: number;
-  @Column({ default: 0 }) walk_minutes: number;
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 50 }) energyScore: number;
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 50 }) hydrationScore: number;
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 50 }) moodScore: number;
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 50 }) restScore: number;
+  @Column({ default: 0 }) waterCups: number;
+  @Column({ default: 0 }) totalXp: number;
+  @Column({ default: 1 }) level: number;
+  @Column({ default: 0 }) streak: number;
+  @CreateDateColumn() createdAt: Date;
+  @UpdateDateColumn() updatedAt: Date;
 }
 ```
+
+---
 
 ### XpLog
 ```typescript
 @Entity('xp_logs')
 export class XpLog {
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() user_id: string;
-  @Column() delta: number;
-  @Column() reason: string;
-  @CreateDateColumn() created_at: Date;
+  @Column() userId: string;
+  @Column({ type: 'date' }) date: string;
+  @Column() amount: number;                           // API 응답에서는 'delta'로 변환
+  @Column() source: string;                          // API 응답에서는 'reason'으로 변환
+  @Column({ nullable: true, type: 'text' }) description: string | null;
+  @CreateDateColumn() createdAt: Date;
 }
 ```
 
-### Badge
+> `source` 유효값: `morning_mood | morning_promise | evening | promise_kept | water_added | walk_completed | workout_completed | meal_logged`
+
+---
+
+### UserBadge
 ```typescript
 @Entity('user_badges')
 export class UserBadge {
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() user_id: string;
-  @Column() badge_code: string;
-  @CreateDateColumn() earned_at: Date;
+  @Column() userId: string;
+  @Column() badgeCode: string;   // BadgeCode enum: first_ritual|7day_streak|30day_streak|water_goal|walk_complete
+  @CreateDateColumn() earnedAt: Date;
 }
 ```
 
 ---
 
-## 6. 구현 우선순위 로드맵
+### WalkSession (P2 신규)
+```typescript
+@Entity('walk_sessions')
+export class WalkSession {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() userId: string;
+  @Column() startedAt: Date;                                        // TypeORM 자동 타입 (DB별 호환)
+  @Column({ nullable: true, default: null }) endedAt: Date;        // complete 호출 시 설정
+  @Column({ type: 'int', nullable: true, default: null }) durationMinutes: number | null;
+  @Column({ default: 0 }) stepsCount: number;
+  @Column({ type: 'decimal', precision: 6, scale: 2, default: 0 }) distanceKm: number;
+  @CreateDateColumn() createdAt: Date;
+}
+```
 
-### P0 — Critical (앱 동작 필수)
+---
 
-| 모듈 | 엔드포인트 | 연결 화면 |
-|------|-----------|-----------|
-| Auth | POST /auth/register, /login, /refresh | 스플래시, 로그인 |
-| Users | GET /users/me | 스플래시 |
-| Onboarding | POST /onboarding/complete | 온보딩 5단계 |
-| Cycle | GET /cycle/current | 홈, 아침 의식 |
-| Rituals | POST /rituals/morning/mood, /morning/promise | 아침 의식 |
-| Stats | GET /stats/today | 홈 |
+### WorkoutLog (P3 신규)
+```typescript
+@Entity('workout_logs')
+export class WorkoutLog {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() userId: string;
+  @Column() workoutId: string;                // e.g. 'follicular_strength_01'
+  @Column({ type: 'date' }) date: string;
+  @Column() workoutType: string;             // WorkoutType enum 값
+  @Column({ type: 'int', nullable: true, default: null }) durationActualMinutes: number | null;
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 1.0 }) completionRate: number;
+  @Column({ default: false }) isSkipped: boolean;
+  @Column({ type: 'varchar', nullable: true, length: 50, default: null }) skipReason: string | null;
+  @CreateDateColumn() createdAt: Date;
+}
+```
 
-### P1 — High (핵심 기능 루프)
+---
 
-| 모듈 | 엔드포인트 | 연결 화면 |
-|------|-----------|-----------|
-| Rituals | POST /rituals/evening | 저녁 의식 |
-| Actions | POST /actions/water, GET /actions/water/today | 물 마시기 |
-| Actions | POST /actions/walk/start, /walk/complete | 산책 |
-| Rewards | GET /rewards/summary | 진화, 대시보드 |
+### MealLog (P3 신규)
+```typescript
+@Entity('meal_logs')
+export class MealLog {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() userId: string;
+  @Column({ type: 'date' }) date: string;
+  @Column() mealType: string;   // MealType enum: breakfast|lunch|dinner|snack
+  @Column({ default: 0 }) totalCalories: number;
+  @Column({ type: 'decimal', precision: 6, scale: 2, default: 0 }) totalProteinG: number;
+  @CreateDateColumn() createdAt: Date;
+}
+```
 
-### P2 — Medium (완성도)
+---
 
-| 모듈 | 엔드포인트 | 연결 화면 |
-|------|-----------|-----------|
-| Workout | GET /workout/recommend, POST /workout/complete | 운동 모듈 |
-| Stats | GET /stats/history | 대시보드 차트 |
-| Cycle | PATCH /cycle/settings, GET /cycle/calendar | 설정, 캘린더 |
+### MealLogItem (P3 신규)
+```typescript
+@Entity('meal_log_items')
+export class MealLogItem {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() mealLogId: string;           // MealLog.id 참조
+  @Column() foodId: string;              // 식약처 형식 e.g. 'mfds_001234'
+  @Column() foodName: string;
+  @Column() amountG: number;             // 섭취량 (g)
+  @Column({ default: 0 }) calories: number;
+  @Column({ type: 'decimal', precision: 6, scale: 2, default: 0 }) proteinG: number;
+}
+```
 
-### P3 — Low (MVP 이후)
+---
 
-| 모듈 | 엔드포인트 | 비고 |
+## 6. 구현 현황 로드맵
+
+> 2026-05-09 기준 — verify-feature UNIT + CONTRACT + DYNAMIC 전 단계 PASS 완료
+
+### ✅ INFRA — 공통 인프라
+
+| 모듈 | 엔드포인트 | 상태 |
 |------|-----------|------|
-| Nutrition | GET /nutrition/search, POST /nutrition/logs | 식약처 API 연동 필요 |
-| Auth | POST /auth/social (Google, Apple) | Phase 2 |
-| Wearable | GET /wearable/sync | Phase 2, HealthKit/Connect |
+| Codes | GET /codes/:groupId, GET /codes?groups= | ✅ 완료 |
+
+### ✅ P0 — Auth + Users + Onboarding
+
+| 모듈 | 엔드포인트 | 상태 |
+|------|-----------|------|
+| Auth | POST /auth/register | ✅ 완료 |
+| Auth | POST /auth/login | ✅ 완료 |
+| Auth | POST /auth/refresh | ✅ 완료 (stub — access_token 재발급만, refresh_token 미도입) |
+| Auth | POST /auth/logout | ✅ 완료 |
+| Users | GET /users/me | ✅ 완료 |
+| Users | PATCH /users/me | ✅ 완료 |
+| Onboarding | POST /onboarding/complete | ✅ 완료 |
+
+### ✅ P1 — Cycle + Rituals + Stats
+
+| 모듈 | 엔드포인트 | 상태 |
+|------|-----------|------|
+| Cycle | GET /cycle/current | ✅ 완료 |
+| Cycle | PATCH /cycle/settings | ✅ 완료 |
+| Cycle | GET /cycle/calendar | ✅ 완료 |
+| Rituals | GET /rituals/today | ✅ 완료 |
+| Rituals | POST /rituals/morning/mood | ✅ 완료 |
+| Rituals | POST /rituals/morning/promise | ✅ 완료 |
+| Rituals | POST /rituals/evening | ✅ 완료 |
+| Stats | GET /stats/today | ✅ 완료 |
+
+### ✅ P2 — Actions + Rewards + Stats history
+
+| 모듈 | 엔드포인트 | 상태 |
+|------|-----------|------|
+| Actions | POST /actions/water | ✅ 완료 |
+| Actions | GET /actions/water/today | ✅ 완료 |
+| Actions | POST /actions/walk/start | ✅ 완료 |
+| Actions | POST /actions/walk/complete | ✅ 완료 |
+| Rewards | GET /rewards/summary | ✅ 완료 |
+| Stats | GET /stats/history | ✅ 완료 |
+
+### ✅ P3 — Workout + Nutrition
+
+| 모듈 | 엔드포인트 | 상태 |
+|------|-----------|------|
+| Workout | GET /workout/recommend | ✅ 완료 (in-memory WORKOUT_CATALOG) |
+| Workout | POST /workout/complete | ✅ 완료 |
+| Workout | POST /workout/skip | ✅ 완료 |
+| Nutrition | GET /nutrition/search | ✅ 완료 (in-memory stub 10개 식품) |
+| Nutrition | POST /nutrition/logs | ✅ 완료 |
+| Nutrition | GET /nutrition/today | ✅ 완료 |
+
+### 🔵 보류 / 미구현
+
+| 항목 | 상태 | 진입 조건 |
+|------|------|-----------|
+| INFRA-AUTH: Refresh Token 정식 흐름 | 🔵 보류 | Phase 2 운영 단계 진입 후 |
+| INFRA-CACHE: Redis TTL + ETag | 🔵 보류 | GET /codes p99 > 100ms OR 일 5K req+ |
+| 식약처 실 API 연동 | 🔵 별도 TODO | data.go.kr API key 발급 후 |
+| Auth: POST /auth/social | 🔵 미구현 | Phase 2 소셜 로그인 |
+| Wearable: GET /wearable/sync | 🔵 미구현 | Phase 2, HealthKit/Connect |
 
 ---
 

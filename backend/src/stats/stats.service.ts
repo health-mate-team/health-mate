@@ -6,6 +6,7 @@ import { DailyRitual } from '../entities/daily-ritual.entity';
 import { DailyStat } from '../entities/daily-stat.entity';
 import { UserCycle } from '../entities/user-cycle.entity';
 import { User } from '../entities/user.entity';
+import { Between } from 'typeorm';
 
 @Injectable()
 export class StatsService {
@@ -17,6 +18,53 @@ export class StatsService {
     @InjectRepository(DailyRitual)
     private readonly ritualRepo: Repository<DailyRitual>,
   ) {}
+
+  async getHistory(user: User, days: number) {
+    const clampedDays = Math.min(Math.max(days, 1), 90);
+    const endDate = localDateString();
+    const startDate = localDateString(
+      new Date(Date.now() - (clampedDays - 1) * 86400000),
+    );
+
+    const [stats, rituals, cycle] = await Promise.all([
+      this.statRepo.find({
+        where: { userId: user.id, date: Between(startDate, endDate) },
+        order: { date: 'ASC' },
+      }),
+      this.ritualRepo.find({
+        where: { userId: user.id, date: Between(startDate, endDate) },
+      }),
+      this.cycleRepo.findOne({ where: { userId: user.id } }),
+    ]);
+
+    const ritualMap = new Map(rituals.map((r) => [r.date, r]));
+
+    const daily_records = stats.map((s) => {
+      const ritual = ritualMap.get(s.date);
+      let phase: string | null = null;
+      if (cycle) {
+        const { phase: p } = calculateCyclePhase(
+          cycle.lastPeriodStartDate,
+          cycle.averagePeriodLength,
+        );
+        phase = p;
+      }
+      return {
+        date: s.date,
+        energy: Math.round(Number(s.energyScore)),
+        hydration: Math.round(Number(s.hydrationScore)),
+        rest: Math.round(Number(s.restScore)),
+        morning_completed: ritual?.morningMood != null,
+        evening_completed: ritual?.eveningCompleted ?? false,
+        phase,
+      };
+    });
+
+    return {
+      period_days: clampedDays,
+      daily_records,
+    };
+  }
 
   async getToday(user: User) {
     const today = localDateString();

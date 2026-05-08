@@ -454,3 +454,88 @@ DYNAMIC (UI)    : screen_evening_ritual 전 단계 PASS (0 console errors)
 보고서: docs/verify-results/2026-05-08_*.json (12개)
 회귀:  newly_failing 0건
 ```
+
+---
+
+## Phase P2+P3 검증 — 2026-05-08/09
+
+> 검증 방식: verify-feature v0.2 (STATIC → UNIT → CONTRACT → DYNAMIC 4-stage)
+> UNIT/CONTRACT: SQLite in-memory NestJS app-factory
+> DYNAMIC: Docker PostgreSQL (localhost:3001)
+
+### 수정 사항 (검증 과정 발견)
+
+| 항목 | 수정 내용 |
+|---|---|
+| `walk-session.entity.ts` | `timestamptz` → TypeORM 자동 타입(`@Column()`) 적용 (SQLite/PostgreSQL 호환) |
+| `walk-session.entity.ts` | `durationMinutes` nullable 컬럼에 `type: 'int'` 명시 |
+| `workout-log.entity.ts` | `durationActualMinutes` nullable 컬럼에 `type: 'int'` 명시 |
+| `workout-log.entity.ts` | `skipReason` 컬럼에 `type: 'varchar'` 명시 |
+| `nutrition_log_today.yaml` | `POST /nutrition/logs` status `201` → `200` 오기입 수정 + `@HttpCode(200)` 추가 |
+| `actions_water.yaml` | 다중 문서 YAML → 단일 문서 분리 (`actions_water_today.yaml` 신규) |
+| `actions_water.yaml`, `actions_walk.yaml` | `fixture_mask: [moa_reaction]` 추가 (랜덤 값 drift 방지) |
+| `scripts/lib/app-factory.ts` | P2+P3 모듈(Actions/Rewards/Workout/Nutrition) 추가 |
+| `scripts/lib/fixture-store.ts` | CACHE_DIR 경로 오류 수정 (`../../../../` → `../../../`) |
+| `scripts/lib/unit-executor.ts` | `{{fixture:catalog#case.field}}` 치환 구현 |
+| `scripts/lib/unit-executor.ts` | 사전조건 실행 시 fixture 저장 추가 |
+| `scripts/lib/dynamic-executor.ts` | `{{fixture:...}}` 치환 + query 파라미터 처리 추가 |
+| `scripts/lib/dynamic-executor.ts` | 사전조건 실행 시 fixture 저장 추가 |
+
+### 검증 결과
+
+```
+─────────────────────────────────────────────
+P2+P3 verify-feature 결과 (2026-05-09)
+─────────────────────────────────────────────
+카탈로그: 9개 (actions_water, actions_water_today, actions_walk,
+          rewards_summary, stats_history, workout_recommend,
+          workout_complete_skip, nutrition_search, nutrition_log_today)
+STATIC  : BE tsc 0 error / FE dart analyze 0 error
+UNIT    : ALL PASS (9/9 카탈로그, 29케이스)
+CONTRACT: ALL PASS (9/9 카탈로그)
+DYNAMIC : ALL PASS (9/9 카탈로그, PostgreSQL 실검증)
+─────────────────────────────────────────────
+보고서: docs/verify-results/2026-05-08_*.json (9개 신규)
+회귀:  newly_failing 0건
+```
+
+---
+
+## Playwright UI 시나리오 검증 — 2026-05-09
+
+> 검증 방식: Playwright MCP (Flutter web localhost:3000 + Docker backend localhost:3001)
+> 대상: screen_workout_page, screen_nutrition_page (P3 신규 화면)
+
+### 발견 버그 및 수정
+
+| 버그 | 원인 | 수정 |
+|---|---|---|
+| `workout_page` 완료·건너뛰기 후 에러 | `context.pop()` — 직접 진입 시 navigation stack 비어 GoError 발생 | `context.canPop() ? pop() : go('/home')` 으로 변경 |
+
+### screen_workout_page 결과
+
+```
+─────────────────────────────────────────────
+화면: WorkoutPage (/action/workout)
+─────────────────────────────────────────────
+GET  /workout/recommend  → 200 ✅
+렌더링: 추천 운동 제목·강도·단계·대안 운동 버튼  ✅
+POST /workout/complete   → 200, 홈 이동         ✅
+POST /workout/skip       → 200, 홈 이동         ✅
+콘솔 에러: 0건                                  ✅
+─────────────────────────────────────────────
+```
+
+### screen_nutrition_page 결과
+
+```
+─────────────────────────────────────────────
+화면: NutritionPage (/nutrition)
+─────────────────────────────────────────────
+GET  /nutrition/today    → 200                  ✅
+렌더링: 섭취 칼로리 (0 kcal / 1800 kcal)       ✅
+렌더링: 사이클 단계별 영양소 추천 메시지·Chip   ✅
+렌더링: 빈 상태 '아직 기록된 식사가 없어요'     ✅
+콘솔 에러: 0건                                  ✅
+─────────────────────────────────────────────
+```
