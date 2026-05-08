@@ -1,0 +1,78 @@
+# 화면 단위 카탈로그 — nutrition_page UI 시나리오
+# 명세: docs/API_SPEC.md#4.10 (GET /nutrition/today)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 실행: npx ts-node --project scripts/tsconfig.json scripts/run-ui-scenario.ts \
+#         --target screen_nutrition_page [--base-url http://localhost:3000]
+
+schema_version: 1
+target: 'screen:nutrition_page'
+spec_section: docs/API_SPEC.md#4.10
+phase: p3
+feature: nutrition
+
+storyboard:
+  summary: |
+    로그인한 사용자가 오늘 식단 화면에 진입하면 GET /nutrition/today가 호출된다.
+    섭취 칼로리·사이클 단계별 영양소 추천 메시지·식사 목록이 렌더링된다.
+    식사 기록이 없으면 '아직 기록된 식사가 없어요' 텍스트가 표시된다.
+  steps:
+    - '사전조건: 로그인(온보딩 완료) 상태'
+    - '화면 진입: /nutrition 라우트 이동'
+    - 'GET /nutrition/today 응답 대기'
+    - "'오늘 섭취: X kcal / 1800 kcal' 텍스트 렌더링 확인"
+    - '영양소 추천 메시지 렌더링 확인'
+    - '빈 상태 메시지 확인 (신규 사용자 = 식사 기록 없음)'
+    - '콘솔 에러 0건 확인'
+  branches:
+    - 신규 사용자 (식사 없음) → '아직 기록된 식사가 없어요' 표시
+    - 식사 기록 있음 → ListTile 목록 렌더링
+
+# ─── Flutter Web Playwright 주의사항 ────────────────────────────
+# - AppBar title → role=heading, name='오늘 식단'
+# - '오늘 섭취: 0 kcal / 1800 kcal' → role=text (titleMedium)
+# - 영양소 추천 메시지 → role=text (bodyMedium)
+# - Chip(label: Text(n)) → role=button (Flutter Chip)
+# - '아직 기록된 식사가 없어요' → role=text
+
+# ─── DYNAMIC Stage: UI 시나리오 ──────────────────────────────────
+dynamic:
+  ui_scenario:
+    # Step 0: 화면 진입
+    - action: navigate
+      to: /nutrition
+
+    # Step 1: GET /nutrition/today 응답 대기
+    - action: wait_for
+      condition: 'response:GET /nutrition/today'
+      timeout_ms: 10000
+
+    # Step 2: 로딩 완료 스냅샷
+    - action: snapshot
+      label: nutrition_loaded
+
+    # Step 3: 네트워크 응답 검증
+    - action: assert_network
+      request: GET /nutrition/today
+      expect_status: 200
+
+    # Step 4: 빈 식사 상태 텍스트 확인
+    # 신규 사용자 기준 → '아직 기록된 식사가 없어요'
+    - action: wait_for
+      condition: 'text:아직 기록된 식사가 없어요'
+      timeout_ms: 5000
+
+    # Step 5: 칼로리 텍스트 렌더링 확인 ('0 kcal / 1800 kcal' 포함)
+    - action: wait_for
+      condition: 'text:1800 kcal'
+      timeout_ms: 3000
+
+    # Step 6: 콘솔 에러 0건 확인
+    - action: assert_console
+      level: error
+      count: 0
+
+screen_targets:
+  - calls:
+      - GET /nutrition/today
+      - GET /nutrition/search
+      - POST /nutrition/logs

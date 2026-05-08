@@ -1,0 +1,56 @@
+# 케이스 카탈로그 — GET /actions/water/today
+# 명세: docs/API_SPEC.md#4.6 (Actions — 데일리 액션)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:GET /actions/water/today
+spec_section: docs/API_SPEC.md#4.6
+phase: p2
+feature: actions
+
+storyboard:
+  summary: |
+    오늘 물 섭취량(cups_total)과 일일 목표(8잔)를 반환한다.
+    신규 사용자는 cups_total=0 을 반환한다.
+  steps:
+    - 사전조건: 로그인 완료
+    - 사용자 액션: GET /actions/water/today
+    - 기대 결과: date + cups_total + daily_target_cups=8
+  branches:
+    - 정상 조회 → 200
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy
+    name: 오늘 물 섭취량 조회 → 200
+    request:
+      method: GET
+      path: /actions/water/today
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [date, cups_total, daily_target_cups]
+        properties:
+          date:              { type: string }
+          cups_total:        { type: integer, minimum: 0 }
+          daily_target_cups: { type: integer, const: 8 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [date]
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: GET
+      path: /actions/water/today
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

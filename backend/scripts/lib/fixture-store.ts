@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const CACHE_DIR = path.resolve(__dirname, '../../../../.verify-cache');
+const CACHE_DIR = path.resolve(__dirname, '../../../.verify-cache');
 
 export function fixturePath(targetId: string, caseId: string): string {
   return path.join(CACHE_DIR, targetId, `${caseId}.json`);

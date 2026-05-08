@@ -39,12 +39,15 @@ MAP    ── 라우팅맵으로 화면·엔드포인트·Phase 결정
         │
         ▼
 INSPECT ─ FE/BE 코드 + API_SPEC.md 동시 확인
-        │  (명세 우위 — 코드 ≠ 명세 시 코드 FAIL 후보)
+        │  ├─ 엔드포인트: spec 위치 + BE/FE 파일 식별
+        │  └─ 화면: route / 초기로드API / 버튼→API매핑 / 렌더링텍스트 / 빈상태 추출 (§4.3)
         ▼
 STORYBOARD ─ 시나리오 1줄 요약 + 단계별 흐름
         │   (보고서 본문 첫 섹션이 됨)
         ▼
-CASE   ── 케이스 카탈로그 작성/갱신 (YAML)
+CASE   ── 카탈로그 없음? → 자동 생성
+        │  ├─ endpoint 타겟: INSPECT+STORYBOARD 기반 YAML 생성
+        │  └─ screen 타겟:  §6.3a 5단계 파이프라인 → ui_scenario 자동 생성
         │
         ▼
 ┌─ STATIC ────── tsc / dart analyze / lint
@@ -167,11 +170,25 @@ CONTRACT Stage에서 코드 ≠ 명세 시:
 - 코드가 명세와 다르면 → CONTRACT FAIL → **코드 수정**이 기본 액션
 - 명세가 잘못된 것이 명백하면 → 사용자에게 명세 수정 동의 요청 (검증 일시 중단)
 
-### 4.3 화면 코드 확인의 목적
+### 4.3 화면 코드 분석 — ui_scenario 생성용 추출 항목
 
-- "이 화면이 어느 엔드포인트를 호출하는가" 매핑 확인 (라우팅맵 검증)
-- 입력 폼 필드명·타입 → 단위테스트 케이스의 변형(boundary) 후보 추출
-- **금지**: 코드의 동작을 시나리오로 채택 → 명세 위배 silent pass 위험
+화면(screen) 타겟일 때 INSPECT는 아래 5가지를 추출해 CASE 단계에 전달한다.
+
+| 추출 항목 | 소스 | 용도 |
+|---|---|---|
+| **route_path** | `_routing-map.yaml` → `screens.{name}.route` | navigate action URL |
+| **초기 로드 API** | Dart `initState` / `Future.microtask` → `ref.read(provider.notifier).load()` → Repository.get* | `wait_for(response:GET ...)` step |
+| **버튼 → API 매핑** | `onPressed` handler → Provider.notifier.method → Repository.post/patch → API endpoint | click + `wait_for(response:POST ...)` step |
+| **렌더링 텍스트 패턴** | `AppBar.title`, `Text('...')` 리터럴, `'${data.field}'` 보간 패턴 | `wait_for(text:...)` assertion |
+| **빈/에러 상태 텍스트** | `if (data.isEmpty) const Text('아직...')` | empty state 케이스 |
+
+**매핑 신뢰도 등급:**
+- `HIGH`: initState에서 직접 Repository 호출 → 확실한 GET trigger
+- `HIGH`: onPressed에서 직접 notifier.method() → 확실한 action trigger
+- `MED`: Provider watch에서 API 호출 (lazy load)
+- `LOW`: 조건부 호출 (특정 상태 진입 시에만) → YAML에 `# TODO: 조건부 트리거` 주석
+
+**금지**: 코드의 동작(구현)을 명세로 역채택 — 명세 위배 silent pass 위험. 코드 분석은 *어떤 버튼이 있고 어떤 API를 부르는가* 위치 식별 전용.
 
 ---
 
@@ -317,9 +334,82 @@ screen_targets:
 
 ### 6.3 카탈로그 발견 + 갱신 규칙
 
-- 카탈로그 없음 → INSPECT + STORYBOARD 결과로 LLM이 초기 파일 생성, 사용자 검토 요청
+**엔드포인트 타겟 (endpoint:*):**
+- 카탈로그 없음 → INSPECT + STORYBOARD 결과로 LLM이 초기 파일 생성, 사용자 검토 요청 (--auto면 자동 진행)
 - 카탈로그 있음 + 명세 변경 감지 → diff 표시 후 갱신 동의
 - 카탈로그 있음 + 명세 동일 → 그대로 사용 (재현성 보장)
+
+**화면 타겟 (screen:*):**
+- 카탈로그 없음 → **6.3a 규칙**으로 LLM이 `dynamic.ui_scenario` 자동 생성 (--auto면 즉시 생성 후 STAGE 진입)
+- 카탈로그 있음 + 화면 코드 변경 감지 (`git diff` 기준) → ui_scenario 갱신 후보 제시
+- 카탈로그 있음 + 변경 없음 → 그대로 사용
+
+### 6.3a 화면 ui_scenario 자동 생성 규칙
+
+> 적용 조건: screen 타겟이고 카탈로그가 없거나 `dynamic.ui_scenario`가 비어 있을 때
+
+**5단계 자동 생성 파이프라인:**
+
+```
+Step 1 [ROUTE]   _routing-map.yaml에서 route 필드 읽기
+                  → navigate action의 URL 결정
+
+Step 2 [INSPECT] Dart 파일(presentation layer) 분석
+                  → 초기 로드 API, 버튼→API 매핑, 렌더링 텍스트, 빈/에러 상태 추출
+                  (§4.3의 5가지 추출 항목)
+
+Step 3 [SPEC]    API_SPEC.md 해당 섹션 읽기
+                  → 각 엔드포인트의 응답 필드·성공 status·에러 케이스 파악
+
+Step 4 [LOGIC]   아래 규칙으로 시나리오 케이스 도출
+
+Step 5 [YAML]    screen_{name}.yaml 생성 및 _routing-map 등록
+```
+
+**Step 4 케이스 도출 규칙:**
+
+| 케이스 유형 | 트리거 | 생성되는 steps |
+|---|---|---|
+| **Load (GET)** | initState / microtask에서 GET API 호출 | navigate → wait_for(GET response) → snapshot → assert_network(GET, 200) → assert_console(0) |
+| **Empty state** | data 없을 때 리터럴 텍스트 존재 (`아직...`, `없어요` 등) | Load steps + wait_for(text: 빈상태텍스트) |
+| **Primary action (POST)** | 주요 버튼 onPressed → POST endpoint | (Load 완료 가정) → click(버튼라벨) → wait_for(POST response) → assert_network(POST, 200) → assert_console(0) |
+| **Secondary action** | 보조 버튼 (건너뛰기, 대안 등) | 동일 패턴, 별도 `ui_scenario_skip` 키로 분리 |
+| **Data render** | `Text('${data.field}')` 패턴 + spec 응답 필드 | wait_for(text: API spec의 예시값 or 단위) |
+
+**자동 생성 원칙:**
+- 하나의 `ui_scenario`는 **단일 주요 흐름(Golden Path)** 만 담는다. 분기는 `ui_scenario_skip` 등 별도 키로 분리
+- `assert_console(level: error, count: 0)` 은 항상 마지막 step
+- 버튼→API 매핑 신뢰도 LOW → step 앞에 `# TODO: 조건부 트리거 확인 필요` 주석 삽입
+- `wait_for` timeout 기본값: GET 10s, POST 8s
+- 네트워크 검증은 API 명세의 성공 status code 기준 (200 or 201)
+
+**생성 예시 (workout_page 기준):**
+
+```
+[INSPECT 추출]
+  route_path: /action/workout
+  초기 로드 API: GET /workout/recommend  (initState → microtask → provider.load())
+  버튼 매핑:
+    '운동 완료' (FilledButton) → complete(workoutId) → POST /workout/complete  [HIGH]
+    '건너뛰기' (OutlinedButton) → skip(workoutId) → POST /workout/skip         [HIGH]
+    '대안 운동: ...' (TextButton) → complete(alternative.workoutId) → POST /workout/complete [HIGH]
+  렌더링 텍스트: rec.title (동적), '강도:', '단계:'  [MED]
+  빈/에러 상태: '오류: $e' 텍스트  [LOW - 에러 케이스]
+
+[API 명세 매핑]
+  GET /workout/recommend → 200, recommendation.title 등
+  POST /workout/complete → 200, xp_earned: 30
+  POST /workout/skip    → 200, skipped: true
+
+[도출된 케이스]
+  ui_scenario (Golden Path: 완료 흐름)
+    navigate → wait_for(GET) → snapshot → assert_network(GET, 200)
+    → click('운동 완료') → wait_for(POST complete) → assert_network(POST, 200)
+    → assert_console(0)
+  ui_scenario_skip (건너뛰기 흐름)
+    navigate → wait_for(GET) → click('건너뛰기') → wait_for(POST skip)
+    → assert_network(POST, 200) → assert_console(0)
+```
 
 ### 6.4 fixture 캡처 정책
 
@@ -396,14 +486,20 @@ UNIT 결과의 캡처 fixture와 카탈로그 `expect.body_schema`를 다시 한
 
 **UI 시나리오**: 카탈로그 `dynamic.ui_scenario`를 Playwright MCP로 인터프리트.
 
+> 카탈로그에 `dynamic.ui_scenario`가 없으면 **§6.3a 자동 생성**을 먼저 실행한 후 이 단계에 진입.
+> 생성된 시나리오는 카탈로그 파일에 저장되어 이후 재실행에서 재사용됨 (재현성 보장).
+
 ```
 action 종류:
   - navigate, click, type, fill_form, wait_for, snapshot
-  - assert_network: chrome-devtools MCP로 캡처 후 expect와 비교
-  - assert_console: error level 0건 확인
+  - assert_network: network_requests 필터링 후 status + body 비교
+  - assert_console: error level count 확인
 ```
 
-각 action은 멱등 또는 idempotency_key 명시.
+**Flutter Web 진입 전제조건:**
+- 인증이 필요한 라우트는 verify-feature가 onboarding 흐름을 자동 수행해 token을 획득
+- 토큰은 브라우저 localStorage에 저장되며 이후 navigate에서 자동 적용
+- 직접 라우트 진입 후 `context.pop()` 오류 방지: 화면 코드의 `pop()` 호출은 `canPop()` 가드 필수 (gotcha)
 
 ### 7.5 Stage 실행 분기
 

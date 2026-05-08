@@ -24,7 +24,7 @@ check_file() {
 check_file "app/pubspec.yaml"
 check_file "app/lib/main.dart"
 check_file "app/lib/app.dart"
-check_file "app/lib/core/router/app_router.dart"
+check_file "app/lib/routing/app_router.dart"
 check_file "app/lib/core/theme/app_theme.dart"
 check_file "backend/src/main.ts"
 check_file "backend/src/app.module.ts"
@@ -97,7 +97,7 @@ echo "▶ [6] Feature 디렉토리 구조"
 
 REQUIRED_DIRS=(
   "app/lib/core/di"
-  "app/lib/core/router"
+  "app/lib/routing"
   "app/lib/core/theme"
   "app/lib/features/auth"
   "app/lib/features/dashboard"

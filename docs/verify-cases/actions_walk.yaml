@@ -1,0 +1,106 @@
+# 케이스 카탈로그 — POST /actions/walk/start + POST /actions/walk/complete
+# 명세: docs/API_SPEC.md#4.6 (Actions — 데일리 액션)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:POST /actions/walk/start
+spec_section: docs/API_SPEC.md#4.6
+phase: p2
+feature: actions
+
+storyboard:
+  summary: |
+    사용자가 산책을 시작하면 walk_session이 생성된다.
+    완료 시 duration/steps/distance를 기록하고 energy_stat_delta + XP +30을 반환한다.
+  steps:
+    - 사전조건: 로그인 완료
+    - 산책 시작: POST /actions/walk/start { started_at }
+    - 산책 완료: POST /actions/walk/complete { walk_session_id, ended_at, duration_minutes, ... }
+    - 기대 결과: xp_earned=30, energy_stat_delta 반환
+  branches:
+    - 정상 시작+완료 → walk_session 생성 후 완료
+    - 이미 완료된 session complete 재시도 → 400
+    - 존재하지 않는 session_id → 404
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy_start
+    name: 산책 시작 → 201 + walk_session_id
+    request:
+      method: POST
+      path: /actions/walk/start
+      auth: required
+      body:
+        started_at: "2026-05-08T10:00:00Z"
+    expect:
+      status: 201
+      body_schema:
+        type: object
+        required: [walk_session_id, started_at]
+        properties:
+          walk_session_id: { type: string, format: uuid }
+          started_at:      { type: string }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [walk_session_id]
+
+  - id: happy_complete
+    name: 산책 완료 → 200 + xp_earned=30
+    setup:
+      preconditions:
+        - case_ref: actions_walk#happy_start
+    request:
+      method: POST
+      path: /actions/walk/complete
+      auth: required
+      body:
+        walk_session_id: "{{fixture:actions_walk#happy_start.walk_session_id}}"
+        ended_at: "2026-05-08T10:15:00Z"
+        duration_minutes: 15
+        steps_count: 1800
+        distance_km: 1.26
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [duration_minutes, distance_km, energy_stat_delta, xp_earned, moa_reaction]
+        properties:
+          duration_minutes:  { type: integer, const: 15 }
+          distance_km:       { type: number }
+          energy_stat_delta: { type: integer, minimum: 0 }
+          xp_earned:         { type: integer, const: 30 }
+          moa_reaction:      { type: string, minLength: 1 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [moa_reaction]
+
+  - id: error_not_found
+    name: 존재하지 않는 session_id → 404
+    request:
+      method: POST
+      path: /actions/walk/complete
+      auth: required
+      body:
+        walk_session_id: "00000000-0000-0000-0000-000000000000"
+        ended_at: "2026-05-08T10:15:00Z"
+        duration_minutes: 15
+    expect:
+      status: 404
+    capture_fixture: false
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: POST
+      path: /actions/walk/start
+      auth: none
+      body:
+        started_at: "2026-05-08T10:00:00Z"
+    expect:
+      status: 401
+    capture_fixture: false

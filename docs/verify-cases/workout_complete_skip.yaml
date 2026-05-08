@@ -1,0 +1,92 @@
+# 케이스 카탈로그 — POST /workout/complete + POST /workout/skip
+# 명세: docs/API_SPEC.md#4.9 (Workout — 운동 추천)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:POST /workout/complete
+spec_section: docs/API_SPEC.md#4.9
+phase: p3
+feature: workout
+
+storyboard:
+  summary: |
+    사용자가 운동을 완료하거나 건너뛴다.
+    완료: workout_log 생성 + XP +30 + energy_stat_delta 반환.
+    건너뛰기: workout_log(is_skipped=true) 생성 + skipped:true 반환.
+  steps:
+    - 사전조건: 로그인 완료
+    - 완료: POST /workout/complete { workout_id, ... }
+    - 기대: xp_earned=30, energy_stat_delta 반환
+  branches:
+    - 운동 완료 → 200 + xp_earned=30
+    - 운동 건너뛰기 → 200 + skipped=true
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy_complete
+    name: 운동 완료 → 200 + xp_earned=30
+    request:
+      method: POST
+      path: /workout/complete
+      auth: required
+      body:
+        workout_id: "follicular_strength_01"
+        duration_actual_minutes: 5
+        completion_rate: 1.0
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [xp_earned, energy_stat_delta, streak_updated, level_up]
+        properties:
+          xp_earned:         { type: integer, const: 30 }
+          energy_stat_delta: { type: integer, minimum: 0 }
+          streak_updated:
+            type: object
+            required: [current_streak]
+            properties:
+              current_streak: { type: integer, minimum: 0 }
+          level_up:
+            oneOf:
+              - type: "null"
+              - type: object
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: []
+
+  - id: happy_skip
+    name: 운동 건너뛰기 → 200 + skipped=true
+    request:
+      method: POST
+      path: /workout/skip
+      auth: required
+      body:
+        workout_id: "follicular_strength_01"
+        skip_reason: "tired"
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [skipped, workout_id]
+        properties:
+          skipped:    { type: boolean, const: true }
+          workout_id: { type: string, minLength: 1 }
+        additionalProperties: false
+    capture_fixture: false
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: POST
+      path: /workout/complete
+      auth: none
+      body:
+        workout_id: "follicular_strength_01"
+    expect:
+      status: 401
+    capture_fixture: false

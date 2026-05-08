@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/evolution/domain/rewards_provider.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
 /// 명세: [docs/design/owner-mock-develop/12_evolution.json] — 단색 단계 전환만 사용 (그라디언트 없음).
@@ -63,24 +65,33 @@ _StageData _stageForLevel(int level) {
   );
 }
 
-class EvolutionPage extends StatefulWidget {
-  const EvolutionPage({super.key, this.newLevel = 4});
+class EvolutionPage extends ConsumerStatefulWidget {
+  const EvolutionPage({super.key, this.newLevel});
 
-  final int newLevel;
+  final int? newLevel;
 
   @override
-  State<EvolutionPage> createState() => _EvolutionPageState();
+  ConsumerState<EvolutionPage> createState() => _EvolutionPageState();
 }
 
-class _EvolutionPageState extends State<EvolutionPage> {
-  late final _StageData _stage;
+class _EvolutionPageState extends ConsumerState<EvolutionPage> {
+  late _StageData _stage;
   int _phase = 0;
 
   @override
   void initState() {
     super.initState();
-    _stage = _stageForLevel(widget.newLevel);
+    _stage = _stageForLevel(widget.newLevel ?? 1);
     unawaited(_runIntro());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final summary = ref.read(rewardsSummaryProvider).valueOrNull;
+    if (summary != null) {
+      setState(() => _stage = _stageForLevel(summary.level));
+    }
   }
 
   Future<void> _runIntro() async {

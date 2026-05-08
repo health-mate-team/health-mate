@@ -21,7 +21,6 @@ const mockUser = (): User =>
 describe('AuthService', () => {
   let service: AuthService;
   let userRepo: jest.Mocked<Repository<User>>;
-  let jwtService: jest.Mocked<JwtService>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -48,7 +47,6 @@ describe('AuthService', () => {
 
     service = module.get(AuthService);
     userRepo = module.get(getRepositoryToken(User));
-    jwtService = module.get(JwtService);
   });
 
   describe('register', () => {
@@ -64,6 +62,7 @@ describe('AuthService', () => {
       });
 
       expect(result).toHaveProperty('access_token', 'mock_jwt_token');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(userRepo.save).toHaveBeenCalledTimes(1);
     });
 
@@ -71,9 +70,9 @@ describe('AuthService', () => {
       userRepo.findOne.mockResolvedValue(null);
       let savedUser: Partial<User> = {};
       userRepo.create.mockImplementation((dto) => ({ ...dto }) as User);
-      userRepo.save.mockImplementation(async (u: User) => {
+      userRepo.save.mockImplementation((u: User) => {
         savedUser = u;
-        return u;
+        return Promise.resolve(u);
       });
 
       await service.register({

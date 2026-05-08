@@ -2,9 +2,13 @@
 // Stage 2-A: API_SPEC.md 명세 적합성 검증의 Flutter 측 회귀 보호.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health_mate/core/constants/cycle_phase.dart';
+import 'package:health_mate/features/action/data/dto/action_dto.dart';
 import 'package:health_mate/features/auth/data/dto/auth_dto.dart';
+import 'package:health_mate/features/nutrition/data/dto/nutrition_dto.dart';
+import 'package:health_mate/features/workout/data/dto/workout_dto.dart';
 import 'package:health_mate/features/cycle/data/dto/cycle_dto.dart';
 import 'package:health_mate/features/evening_ritual/data/dto/evening_dto.dart';
+import 'package:health_mate/features/evolution/data/dto/rewards_dto.dart';
 import 'package:health_mate/features/home/data/dto/stats_dto.dart';
 import 'package:health_mate/features/morning_ritual/data/dto/ritual_dto.dart';
 import 'package:health_mate/features/onboarding/data/dto/onboarding_dto.dart';
@@ -247,6 +251,263 @@ void main() {
     test('파싱: 빈 문자열 / unknown → fallback (follicular)', () {
       expect(CyclePhase.parse(''), CyclePhase.follicular);
       expect(CyclePhase.parse('unknown'), CyclePhase.follicular);
+    });
+  });
+
+  group('P2 Actions contract', () {
+    test('POST /actions/water 응답 → WaterActionResponse 매핑', () {
+      final dto = WaterActionResponse.fromJson({
+        'today_cups_total': 4,
+        'daily_target_cups': 8,
+        'hydration_stat': 62,
+        'xp_earned': 5,
+        'moa_reaction': '물 마셨군요! 💧',
+      });
+      expect(dto.todayCupsTotal, 4);
+      expect(dto.dailyTargetCups, 8);
+      expect(dto.hydrationStat, 62);
+      expect(dto.xpEarned, 5);
+      expect(dto.moaReaction, '물 마셨군요! 💧');
+    });
+
+    test('GET /actions/water/today 응답 → WaterTodayDto 매핑', () {
+      final dto = WaterTodayDto.fromJson({
+        'date': '2026-05-08',
+        'cups_total': 3,
+        'daily_target_cups': 8,
+      });
+      expect(dto.cupsTotal, 3);
+      expect(dto.dailyTargetCups, 8);
+    });
+
+    test('POST /actions/walk/start 응답 → WalkStartResponse 매핑', () {
+      final dto = WalkStartResponse.fromJson({
+        'walk_session_id': 'uuid-1234',
+        'started_at': '2026-05-08T18:30:00.000Z',
+      });
+      expect(dto.walkSessionId, 'uuid-1234');
+    });
+
+    test('POST /actions/walk/complete 응답 → WalkCompleteResponse 매핑', () {
+      final dto = WalkCompleteResponse.fromJson({
+        'duration_minutes': 15,
+        'distance_km': 1.26,
+        'energy_stat_delta': 8,
+        'xp_earned': 30,
+        'moa_reaction': '15분 걸었어요! 🐾',
+      });
+      expect(dto.durationMinutes, 15);
+      expect(dto.xpEarned, 30);
+      expect(dto.energyStatDelta, 8);
+    });
+  });
+
+  group('P2 Rewards contract', () {
+    test('GET /rewards/summary 응답 → RewardsSummaryDto 매핑', () {
+      final dto = RewardsSummaryDto.fromJson({
+        'level': 5,
+        'current_xp': 320,
+        'xp_to_next_level': 380,
+        'total_xp_earned': 320,
+        'streak': {'current': 7, 'longest': 12},
+        'evolution_stage': {
+          'stage': 2,
+          'name': '성장 모아',
+          'color_token': 'OwnerColors.accentMint',
+          'next_stage_xp_threshold': 300,
+          'xp_to_next': 380,
+        },
+        'badges': [
+          {
+            'code': 'first_ritual',
+            'name': '첫 의식 완료',
+            'description': '처음으로 아침 의식을 완료했어요',
+            'earned_at': '2026-05-01T07:00:00.000Z',
+          }
+        ],
+        'xp_log': [
+          {
+            'delta': 10,
+            'reason': 'morning_mood',
+            'label': '아침 기분 체크 +10 XP',
+            'created_at': '2026-05-08T07:00:00.000Z',
+          }
+        ],
+      });
+      expect(dto.level, 5);
+      expect(dto.currentXp, 320);
+      expect(dto.streak.current, 7);
+      expect(dto.streak.longest, 12);
+      expect(dto.evolutionStage.stage, 2);
+      expect(dto.evolutionStage.name, '성장 모아');
+      expect(dto.badges.length, 1);
+      expect(dto.badges.first.code, 'first_ritual');
+      expect(dto.xpLog.length, 1);
+      expect(dto.xpLog.first.delta, 10);
+      expect(dto.xpLog.first.reason, 'morning_mood');
+    });
+
+    test('badges/xpLog 빈 배열 → fallback', () {
+      final dto = RewardsSummaryDto.fromJson({
+        'level': 1,
+        'current_xp': 0,
+        'streak': {'current': 0, 'longest': 0},
+        'evolution_stage': {
+          'stage': 1,
+          'name': '새싹 모아',
+          'color_token': '',
+          'next_stage_xp_threshold': 0,
+          'xp_to_next': 300,
+        },
+      });
+      expect(dto.badges, isEmpty);
+      expect(dto.xpLog, isEmpty);
+      expect(dto.level, 1);
+    });
+  });
+
+  group('P3 Workout contract', () {
+    test('GET /workout/recommend → WorkoutRecommendDto 매핑', () {
+      final dto = WorkoutRecommendDto.fromJson({
+        'recommendation': {
+          'workout_id': 'follicular_strength_01',
+          'title': '난포기 5분 근력 빌드업',
+          'type': 'strength_training',
+          'intensity': 'moderate',
+          'duration_minutes': 5,
+          'phase_fit': 'follicular',
+          'thumbnail_url': null,
+          'video_url': null,
+          'is_video_ready': false,
+          'fallback_type': 'svg_animation',
+        },
+        'based_on': {'phase': 'follicular', 'mood': 'okay', 'goal': 'energy'},
+        'alternative': {
+          'workout_id': 'follicular_cardio_01',
+          'title': '난포기 빠르게 걷기 5분',
+          'type': 'light_cardio',
+          'intensity': 'low',
+          'duration_minutes': 5,
+          'phase_fit': 'follicular',
+          'thumbnail_url': null,
+          'video_url': null,
+          'is_video_ready': false,
+          'fallback_type': 'svg_animation',
+        },
+      });
+      expect(dto.recommendation.workoutId, 'follicular_strength_01');
+      expect(dto.recommendation.type, 'strength_training');
+      expect(dto.recommendation.durationMinutes, 5);
+      expect(dto.alternative?.workoutId, 'follicular_cardio_01');
+    });
+
+    test('GET /workout/recommend → alternative null 허용', () {
+      final dto = WorkoutRecommendDto.fromJson({
+        'recommendation': {
+          'workout_id': 'menstrual_stretching_01',
+          'title': '월경기 따뜻한 5분 요가',
+          'type': 'stretching',
+          'intensity': 'low',
+          'duration_minutes': 5,
+          'phase_fit': 'menstrual',
+          'thumbnail_url': null,
+          'video_url': null,
+          'is_video_ready': false,
+          'fallback_type': 'svg_animation',
+        },
+        'based_on': {'phase': 'menstrual', 'mood': 'okay', 'goal': 'rest'},
+        'alternative': null,
+      });
+      expect(dto.recommendation.phaseFit, 'menstrual');
+      expect(dto.alternative, isNull);
+    });
+
+    test('POST /workout/complete 응답 → WorkoutCompleteResponse 매핑', () {
+      final dto = WorkoutCompleteResponse.fromJson({
+        'xp_earned': 30,
+        'energy_stat_delta': 10,
+        'streak_updated': {'current_streak': 8},
+        'level_up': null,
+      });
+      expect(dto.xpEarned, 30);
+      expect(dto.energyStatDelta, 10);
+    });
+
+    test('POST /workout/skip 응답 → WorkoutSkipResponse 매핑', () {
+      final dto = WorkoutSkipResponse.fromJson({
+        'skipped': true,
+        'workout_id': 'follicular_strength_01',
+      });
+      expect(dto.skipped, true);
+      expect(dto.workoutId, 'follicular_strength_01');
+    });
+  });
+
+  group('P3 Nutrition contract', () {
+    test('GET /nutrition/search 응답 → NutritionSearchDto 매핑', () {
+      final dto = NutritionSearchDto.fromJson({
+        'query': '닭가슴살',
+        'results': [
+          {
+            'food_id': 'mfds_001234',
+            'name': '닭가슴살 (삶은 것)',
+            'calories_per_100g': 109,
+            'protein_g': 23.1,
+            'carbs_g': 0,
+            'fat_g': 1.2,
+            'source': '식약처',
+          }
+        ],
+      });
+      expect(dto.query, '닭가슴살');
+      expect(dto.results.length, 1);
+      expect(dto.results.first.foodId, 'mfds_001234');
+      expect(dto.results.first.caloriesPer100g, 109);
+    });
+
+    test('POST /nutrition/logs 응답 → NutritionLogResponse 매핑', () {
+      final dto = NutritionLogResponse.fromJson({
+        'meal_log_id': 'uuid-meal-001',
+        'total_calories': 164,
+        'xp_earned': 10,
+      });
+      expect(dto.mealLogId, 'uuid-meal-001');
+      expect(dto.totalCalories, 164);
+      expect(dto.xpEarned, 10);
+    });
+
+    test('GET /nutrition/today → NutritionTodayDto 매핑', () {
+      final dto = NutritionTodayDto.fromJson({
+        'date': '2026-05-08',
+        'total_calories': 1240,
+        'daily_target_calories': 1800,
+        'phase_recommendation': {
+          'phase': 'follicular',
+          'focus_nutrients': ['단백질', '복합 탄수화물'],
+          'message': '난포기에는 단백질 섭취를 늘려 근육 회복을 도와요',
+        },
+        'meals': [
+          {'meal_type': 'lunch', 'calories': 520, 'foods_count': 3}
+        ],
+      });
+      expect(dto.totalCalories, 1240);
+      expect(dto.dailyTargetCalories, 1800);
+      expect(dto.phaseRecommendation.phase, 'follicular');
+      expect(dto.phaseRecommendation.focusNutrients, ['단백질', '복합 탄수화물']);
+      expect(dto.meals.length, 1);
+      expect(dto.meals.first.mealType, 'lunch');
+    });
+
+    test('GET /nutrition/today → phase_recommendation null fallback', () {
+      final dto = NutritionTodayDto.fromJson({
+        'date': '2026-05-08',
+        'total_calories': 0,
+        'daily_target_calories': 1800,
+        'phase_recommendation': null,
+        'meals': [],
+      });
+      expect(dto.phaseRecommendation.focusNutrients, isEmpty);
+      expect(dto.meals, isEmpty);
     });
   });
 }

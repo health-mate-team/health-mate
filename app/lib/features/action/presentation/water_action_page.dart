@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/action/domain/actions_provider.dart';
 import 'package:health_mate/features/action/presentation/water_action_result.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
 /// 명세: [docs/design/owner-mock-develop/09_action_water.json] — 시트형 레이아웃을 풀스크린에 맞춤.
-class WaterActionPage extends StatefulWidget {
+class WaterActionPage extends ConsumerStatefulWidget {
   const WaterActionPage({super.key});
 
   @override
-  State<WaterActionPage> createState() => _WaterActionPageState();
+  ConsumerState<WaterActionPage> createState() => _WaterActionPageState();
 }
 
-class _WaterActionPageState extends State<WaterActionPage> {
+class _WaterActionPageState extends ConsumerState<WaterActionPage> {
   int _sessionAdded = 0;
-  int _cupsBeforeSession = 0;
   bool _justDrank = false;
 
   @override
   void initState() {
     super.initState();
-    // TODO(offline): SharedPreferences로 일일 잔 수 복원 시 _cupsBeforeSession에 반영
   }
 
-  int get _displayCups =>
-      (_cupsBeforeSession + _sessionAdded).clamp(0, 8);
+  int get _serverCups =>
+      ref.watch(waterTodayProvider).valueOrNull?.cupsTotal ?? 0;
+
+  int get _displayCups => (_serverCups + _sessionAdded).clamp(0, 8);
 
   String _feedbackText() {
     final n = _displayCups;
@@ -50,6 +52,7 @@ class _WaterActionPageState extends State<WaterActionPage> {
     if (_displayCups >= 8) return;
     setState(() => _sessionAdded++);
     _afterDrinkPulse();
+    ref.read(waterTodayProvider.notifier).addCup().ignore();
   }
 
   void _close() {

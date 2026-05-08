@@ -1,0 +1,81 @@
+# 케이스 카탈로그 — GET /workout/recommend
+# 명세: docs/API_SPEC.md#4.9 (Workout — 운동 추천)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:GET /workout/recommend
+spec_section: docs/API_SPEC.md#4.9
+phase: p3
+feature: workout
+
+storyboard:
+  summary: |
+    로그인한 사용자의 사이클 단계와 기분·목표를 기반으로 오늘의 운동을 추천한다.
+    recommendation(필수) + alternative(nullable) + based_on 을 반환한다.
+    MVP에서는 WORKOUT_CATALOG in-memory 데이터로 응답한다.
+  steps:
+    - 사전조건: 로그인 완료 (access_token 보유)
+    - 사용자 액션: GET /workout/recommend
+    - 기대 결과: recommendation + based_on 반환
+  branches:
+    - 정상 조회 → 200 + recommendation + based_on
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy
+    name: 운동 추천 조회 → 200
+    request:
+      method: GET
+      path: /workout/recommend
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [recommendation, based_on]
+        properties:
+          recommendation:
+            type: object
+            required: [workout_id, title, type, intensity, duration_minutes, phase_fit,
+                       is_video_ready, fallback_type]
+            properties:
+              workout_id:        { type: string, minLength: 1 }
+              title:             { type: string, minLength: 1 }
+              type:              { type: string }
+              intensity:         { type: string, enum: [low, moderate, high] }
+              duration_minutes:  { type: integer, minimum: 1 }
+              phase_fit:         { type: string }
+              thumbnail_url:     { type: [string, "null"] }
+              video_url:         { type: [string, "null"] }
+              is_video_ready:    { type: boolean }
+              fallback_type:     { type: string }
+          based_on:
+            type: object
+            required: [phase, mood, goal]
+            properties:
+              phase: { type: string }
+              mood:  { type: string }
+              goal:  { type: string }
+          alternative:
+            oneOf:
+              - type: object
+                required: [workout_id, title, type]
+              - type: "null"
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: []
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: GET
+      path: /workout/recommend
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false
