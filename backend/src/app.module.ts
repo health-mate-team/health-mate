@@ -3,11 +3,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-// TODO: 각 Feature 모듈 import 추가 (구현 시)
-// import { AuthModule } from './auth/auth.module';
-// import { UsersModule } from './users/users.module';
-// import { WorkoutModule } from './workout/workout.module';
-// import { NutritionModule } from './nutrition/nutrition.module';
+import { AuthModule } from './auth/auth.module';
+import { CodesModule } from './codes/codes.module';
+import { CycleModule } from './cycle/cycle.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
+import { RitualsModule } from './rituals/rituals.module';
+import { StatsModule } from './stats/stats.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,10 +28,13 @@ import { AppService } from './app.service';
       }),
       inject: [ConfigService],
     }),
-    // AuthModule,
-    // UsersModule,
-    // WorkoutModule,
-    // NutritionModule,
+    AuthModule,
+    CodesModule,
+    UsersModule,
+    OnboardingModule,
+    CycleModule,
+    RitualsModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

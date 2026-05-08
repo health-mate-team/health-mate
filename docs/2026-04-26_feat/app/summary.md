@@ -14,7 +14,7 @@
 |------|------|
 | **관련 브랜치/이슈** | `main` (로컬 커밋 다수 → `origin/main` 푸시) |
 | **변경 영역** | `app`, `docs`, `githooks`, `.gitignore` |
-| **주요 파일·경로** | `lib/features/**/presentation/*`, `lib/shared/widgets/owner/*`, `lib/core/theme/owner/*`, `lib/routing/app_router.dart`, `app/assets/오우너 목업디벨롭파일/*`, `githooks/*`, `shared/constants/owner_prefs_keys.dart` |
+| **주요 파일·경로** | `lib/features/**/presentation/*`, `lib/shared/widgets/owner/*`, `lib/core/theme/owner/*`, `lib/routing/app_router.dart`, `docs/design/owner-mock-develop/*`, `githooks/*`, `shared/constants/owner_prefs_keys.dart` |
 
 ---
 
@@ -62,8 +62,8 @@
 
 | 유형 | 경로 |
 |------|------|
-| 디벨롭 명세 | `app/assets/오우너 목업디벨롭파일/*.json`, `README.md` |
-| 기존 목업 | `app/assets/오우너목업파일/` |
+| 디벨롭 명세 | `docs/design/owner-mock-develop/*.json`, `README.md` |
+| 기존 목업 | `docs/design/owner-mock/` |
 | Git 훅 | `githooks/commit-msg`, `githooks/prepare-commit-msg` (`core.hooksPath=githooks`) |
 
 ---

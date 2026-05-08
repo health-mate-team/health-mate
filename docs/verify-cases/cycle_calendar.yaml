@@ -1,0 +1,82 @@
+# 케이스 카탈로그 — GET /cycle/calendar
+# 명세: docs/API_SPEC.md#4.4 (Cycle — 사이클 OS)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["GET /cycle/calendar"]
+
+schema_version: 1
+target: endpoint:GET /cycle/calendar
+spec_section: docs/API_SPEC.md#4.4
+phase: p1
+feature: cycle
+
+storyboard:
+  summary: |
+    사용자가 특정 연·월의 사이클 달력을 조회한다.
+    해당 월의 일별 phase·day_of_cycle 배열을 반환한다.
+    28일 이상의 days 배열, 각 요소에 date·phase·day_of_cycle 포함.
+  steps:
+    - 사전조건: 온보딩 완료
+    - 사용자 액션: GET /cycle/calendar?year=YYYY&month=M
+    - 기대 결과: 200 + data.{ year, month, days[] }
+  branches:
+    - 정상 조회 → 200 + days 배열 (28개 이상, phase+day_of_cycle 포함)
+    - 토큰 없음 → 401
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: onboarding_complete#happy
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 달력 조회 ──────────────────────────────
+  - id: happy
+    name: 이번 달 달력 조회 → 200 + days 배열
+    request:
+      method: GET
+      path: /cycle/calendar
+      query:
+        year: "{{current_year}}"
+        month: "{{current_month}}"
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [year, month, days]
+        properties:
+          year:  { type: integer, minimum: 2026 }
+          month: { type: integer, minimum: 1, maximum: 12 }
+          days:
+            type: array
+            minItems: 28
+            items:
+              type: object
+              required: [date, phase, day_of_cycle]
+              properties:
+                date:         { type: string }   # YYYY-MM-DD
+                phase:        { type: string, enum: [menstrual, follicular, ovulation, luteal] }
+                day_of_cycle: { type: integer, minimum: 1 }
+              additionalProperties: false
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [year, month, days]   # 날짜 전체 마스킹
+
+  # ── 경계: 토큰 없음 ───────────────────────────────
+  - id: error_unauth
+    name: 토큰 없음 → 401 Unauthorized
+    request:
+      method: GET
+      path: /cycle/calendar
+      query:
+        year: "2026"
+        month: "5"
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

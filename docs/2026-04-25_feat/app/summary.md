@@ -66,9 +66,9 @@
 
 | 유형 | 경로 |
 |------|------|
-| 디자인 룰 | `app/assets/오우너목업파일/01_DESIGN_RULES.md` |
-| 화면 인덱스 | `app/assets/오우너목업파일/00_index.json` |
-| 토큰 추가 | `app/assets/오우너목업파일/token_additions.json` |
+| 디자인 룰 | `docs/design/owner-mock/01_DESIGN_RULES.md` |
+| 화면 인덱스 | `docs/design/owner-mock/00_index.json` |
+| 토큰 추가 | `docs/design/owner-mock/token_additions.json` |
 | Cursor 룰 | `.cursor/rules/owner-design.mdc`, `.cursor/rules/docs-feat-summary.mdc` |
 
 ---

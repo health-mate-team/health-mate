@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T11:06:20.794Z",
+  "target": "endpoint:PATCH /cycle/settings",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_hydration",
+          "caseName": "goal_type=hydration 변경 → 200 + goal_type 갱신",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/cycle_settings/happy_hydration.json"
+        },
+        {
+          "caseId": "happy_rest",
+          "caseName": "goal_type=rest 변경 → 200",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_old_weight",
+          "caseName": "폐기된 goal_type(weight) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_old_mood",
+          "caseName": "폐기된 goal_type(mood) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_hydration",
+          "caseName": "goal_type=hydration 변경 → 200 + goal_type 갱신",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_hydration",
+          "caseName": "goal_type=hydration 변경 → 200 + goal_type 갱신",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "happy_rest",
+          "caseName": "goal_type=rest 변경 → 200",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_old_weight",
+          "caseName": "폐기된 goal_type(weight) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_old_mood",
+          "caseName": "폐기된 goal_type(mood) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

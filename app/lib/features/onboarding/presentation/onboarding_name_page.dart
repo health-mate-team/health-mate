@@ -1,20 +1,27 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/auth/data/dto/auth_dto.dart';
+import 'package:health_mate/features/auth/domain/auth_notifier.dart';
 import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 명세: [오우너 목업디벨롭파일/03_onboarding_name.json]
-class OnboardingNamePage extends StatefulWidget {
+/// 명세: [docs/design/owner-mock-develop/03_onboarding_name.json]
+class OnboardingNamePage extends ConsumerStatefulWidget {
   const OnboardingNamePage({super.key});
 
   @override
-  State<OnboardingNamePage> createState() => _OnboardingNamePageState();
+  ConsumerState<OnboardingNamePage> createState() => _OnboardingNamePageState();
 }
 
-class _OnboardingNamePageState extends State<OnboardingNamePage> {
+class _OnboardingNamePageState extends ConsumerState<OnboardingNamePage> {
   final _controller = TextEditingController();
+  bool _submitting = false;
+  String? _errorText;
 
   @override
   void dispose() {
@@ -22,13 +29,47 @@ class _OnboardingNamePageState extends State<OnboardingNamePage> {
     super.dispose();
   }
 
+  String _generateGuestEmail() {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final rand = Random.secure().nextInt(0xFFFFFF).toRadixString(16);
+    return 'guest_${ts}_$rand@guest.healthmate.app';
+  }
+
+  String _generateGuestPassword() {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final r = Random.secure();
+    return List.generate(16, (_) => chars[r.nextInt(chars.length)]).join();
+  }
+
   Future<void> _next() async {
     final name = _controller.text.trim();
-    if (name.isEmpty) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(OwnerPrefsKeys.displayName, name);
-    if (!mounted) return;
-    context.go('/onboarding/goal');
+    if (name.isEmpty || _submitting) return;
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(OwnerPrefsKeys.displayName, name);
+
+      // 게스트 가입 자동 처리 (MVP) — 차후 소셜 로그인 전환 시 교체.
+      await ref.read(authNotifierProvider.notifier).register(
+            RegisterRequest(
+              email: _generateGuestEmail(),
+              password: _generateGuestPassword(),
+              name: name,
+            ),
+          );
+
+      if (!mounted) return;
+      context.go('/onboarding/goal');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorText = '가입에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   String _hintCaption(String raw) {
@@ -88,6 +129,7 @@ class _OnboardingNamePageState extends State<OnboardingNamePage> {
                       controller: _controller,
                       autofocus: true,
                       maxLength: 10,
+                      enabled: !_submitting,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _next(),
                       style: OwnerTypography.body,
@@ -106,6 +148,15 @@ class _OnboardingNamePageState extends State<OnboardingNamePage> {
                         );
                       },
                     ),
+                    if (_errorText != null) ...[
+                      const SizedBox(height: OwnerSpacing.sm),
+                      Text(
+                        _errorText!,
+                        style: OwnerTypography.caption.copyWith(
+                          color: OwnerColors.error,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -120,9 +171,9 @@ class _OnboardingNamePageState extends State<OnboardingNamePage> {
               child: ListenableBuilder(
                 listenable: _controller,
                 builder: (context, _) {
-                  final ok = _controller.text.trim().isNotEmpty;
+                  final ok = _controller.text.trim().isNotEmpty && !_submitting;
                   return OwnerButton(
-                    label: '다음',
+                    label: _submitting ? '처리 중...' : '다음',
                     onPressed: ok ? _next : null,
                   );
                 },

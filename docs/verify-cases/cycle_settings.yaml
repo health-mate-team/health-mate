@@ -1,0 +1,110 @@
+# 케이스 카탈로그 — PATCH /cycle/settings
+# 명세: docs/API_SPEC.md#4.4 (Cycle — 사이클 OS)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["PATCH /cycle/settings"]
+
+schema_version: 1
+target: endpoint:PATCH /cycle/settings
+spec_section: docs/API_SPEC.md#4.4
+phase: p1
+feature: cycle
+
+storyboard:
+  summary: |
+    사용자가 목표 유형(goal_type)을 변경한다.
+    허용 enum: [energy, hydration, rest, fitness]. 폐기된 값(weight, mood)은 400.
+    변경 성공 시 갱신된 goal_type을 포함한 사이클 설정을 반환한다.
+  steps:
+    - 사전조건: 온보딩 완료 (goal_type=energy 기본값)
+    - 사용자 액션: PATCH /cycle/settings { goal_type }
+    - 기대 결과: 200 + data.goal_type 갱신
+  branches:
+    - 유효한 goal_type(hydration) → 200 + goal_type=hydration
+    - 유효한 goal_type(rest) → 200 + goal_type=rest
+    - 폐기된 goal_type(weight) → 400 Bad Request
+    - 폐기된 goal_type(mood) → 400 Bad Request
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: onboarding_complete#happy
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: hydration으로 변경 ─────────────────────
+  - id: happy_hydration
+    name: goal_type=hydration 변경 → 200 + goal_type 갱신
+    request:
+      method: PATCH
+      path: /cycle/settings
+      body:
+        goal_type: "hydration"
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [current_phase, day_of_cycle, days_until_next_period, next_period_date,
+                   average_cycle_length, average_period_length, is_irregular, goal_type]
+        properties:
+          current_phase:          { type: string, enum: [menstrual, follicular, ovulation, luteal] }
+          day_of_cycle:           { type: integer, minimum: 1 }
+          days_until_next_period: { type: integer, minimum: 0 }
+          next_period_date:       { type: string }
+          average_cycle_length:   { type: integer, minimum: 1 }
+          average_period_length:  { type: integer, minimum: 1 }
+          is_irregular:           { type: boolean }
+          goal_type:              { type: string, const: hydration }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [day_of_cycle, days_until_next_period, next_period_date, current_phase]
+
+  # ── Happy: rest로 변경 ────────────────────────────
+  - id: happy_rest
+    name: goal_type=rest 변경 → 200
+    request:
+      method: PATCH
+      path: /cycle/settings
+      body:
+        goal_type: "rest"
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [goal_type]
+        properties:
+          goal_type: { type: string, const: rest }
+        additionalProperties: false
+    capture_fixture: false
+
+  # ── 오류: 폐기된 enum(weight) ─────────────────────
+  - id: error_old_weight
+    name: 폐기된 goal_type(weight) → 400 Bad Request
+    request:
+      method: PATCH
+      path: /cycle/settings
+      body:
+        goal_type: "weight"
+      auth: required
+    expect:
+      status: 400
+    capture_fixture: false
+
+  # ── 오류: 폐기된 enum(mood) ───────────────────────
+  - id: error_old_mood
+    name: 폐기된 goal_type(mood) → 400 Bad Request
+    request:
+      method: PATCH
+      path: /cycle/settings
+      body:
+        goal_type: "mood"
+      auth: required
+    expect:
+      status: 400
+    capture_fixture: false

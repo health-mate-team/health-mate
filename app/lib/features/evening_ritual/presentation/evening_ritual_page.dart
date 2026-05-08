@@ -1,61 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
-import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
+import 'package:health_mate/features/codes/data/dto/code_dto.dart';
+import 'package:health_mate/features/codes/domain/codes_provider.dart';
+import 'package:health_mate/features/evening_ritual/data/dto/evening_dto.dart';
+import 'package:health_mate/features/evening_ritual/data/evening_repository.dart';
+import 'package:health_mate/features/home/domain/stats_provider.dart';
+import 'package:health_mate/features/morning_ritual/domain/rituals_provider.dart';
+import 'package:health_mate/shared/utils/test_widget_key.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// 명세: [오우너 목업디벨롭파일/11_evening_ritual.json]
-class EveningRitualPage extends StatefulWidget {
+/// 명세: [docs/design/owner-mock-develop/11_evening_ritual.json]
+class EveningRitualPage extends ConsumerStatefulWidget {
   const EveningRitualPage({super.key});
 
   @override
-  State<EveningRitualPage> createState() => _EveningRitualPageState();
+  ConsumerState<EveningRitualPage> createState() => _EveningRitualPageState();
 }
 
-class _EveningRitualPageState extends State<EveningRitualPage> {
+class _EveningRitualPageState extends ConsumerState<EveningRitualPage> {
   bool _promiseKept = false;
-  String? _eveningMood;
-  String _promiseText = '오늘의 약속을 아직 정하지 않았어요';
-  int _promiseXp = 30;
+  String? _eveningMoodId;
+  bool _submitting = false;
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    final text = prefs.getString(OwnerPrefsKeys.todayPromiseText);
-    final xp = prefs.getInt(OwnerPrefsKeys.todayPromiseRewardXp);
-    final done = prefs.getBool(OwnerPrefsKeys.todayPromiseCompleted);
-    setState(() {
-      if (text != null && text.isNotEmpty) {
-        _promiseText = text;
-      }
-      if (xp != null) {
-        _promiseXp = xp;
-      }
-      if (done != null) {
-        _promiseKept = done;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ritual = ref.read(ritualTodayProvider).valueOrNull;
+      if (ritual != null && mounted) {
+        setState(() => _promiseKept = ritual.promiseKept);
       }
     });
   }
 
-  Future<void> _persistPromiseDone(bool v) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(OwnerPrefsKeys.todayPromiseCompleted, v);
-  }
-
   Future<void> _finish() async {
-    if (!mounted) return;
-    context.go('/home');
+    if (_submitting) return;
+    setState(() => _submitting = true);
+
+    try {
+      final req = EveningRitualRequest(promiseKept: _promiseKept);
+      await ref.read(eveningRepositoryProvider).submitEvening(req);
+      ref.invalidate(statsProvider);
+      ref.invalidate(ritualTodayProvider);
+      if (!mounted) return;
+      context.go('/home');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류가 발생했어요: $e')),
+      );
+      setState(() => _submitting = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final ritualAsync = ref.watch(ritualTodayProvider);
+    final eveningMoodAsync = ref.watch(codeGroupProvider('evening_mood'));
+    final promiseText = ritualAsync.valueOrNull?.morningPromise ??
+        '오늘의 약속을 아직 정하지 않았어요';
+
     final borderSubtle = OwnerColors.white.withOpacity(0.15);
     final glassBg = OwnerColors.white.withOpacity(0.08);
 
@@ -159,17 +165,18 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              OwnerCheckbox(
-                                checked: _promiseKept,
-                                onChanged: (next) {
-                                  setState(() => _promiseKept = next);
-                                  _persistPromiseDone(next);
-                                },
+                              withTestId(
+                                'evening-promise-checkbox',
+                                OwnerCheckbox(
+                                  checked: _promiseKept,
+                                  onChanged: (next) =>
+                                      setState(() => _promiseKept = next),
+                                ),
                               ),
                               const SizedBox(width: OwnerSpacing.sm),
                               Expanded(
                                 child: Text(
-                                  _promiseText,
+                                  promiseText,
                                   style: OwnerTypography.body.copyWith(
                                     color: OwnerColors.white,
                                   ),
@@ -187,7 +194,7 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
                                     borderRadius: OwnerRadius.radiusMd,
                                   ),
                                   child: Text(
-                                    '+$_promiseXp',
+                                    '+60 XP',
                                     style: OwnerTypography.caption.copyWith(
                                       color: OwnerColors.accentSky,
                                     ),
@@ -204,24 +211,32 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
                             ),
                           ),
                           const SizedBox(height: OwnerSpacing.md),
-                          Row(
-                            children: [
-                              for (var i = 0; i < _eveningOptions.length; i++) ...[
-                                if (i > 0) const SizedBox(width: 6),
-                                Expanded(
-                                  child: _EveningMoodCell(
-                                    emoji: _eveningOptions[i].emoji,
-                                    label: _eveningOptions[i].label,
-                                    selected:
-                                        _eveningMood == _eveningOptions[i].id,
-                                    onTap: () => setState(
-                                      () => _eveningMood =
-                                          _eveningOptions[i].id,
+                          eveningMoodAsync.when(
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (_, __) =>
+                                const Text('옵션을 불러오지 못했어요'),
+                            data: (options) => Row(
+                              children: [
+                                for (var i = 0; i < options.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 6),
+                                  Expanded(
+                                    child: withTestId(
+                                      'evening-mood-cell-$i',
+                                      _EveningMoodCell(
+                                        code: options[i],
+                                        selected:
+                                            _eveningMoodId == options[i].id,
+                                        onTap: () => setState(
+                                          () => _eveningMoodId = options[i].id,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ],
                       ),
@@ -237,9 +252,14 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
                 OwnerSpacing.base,
                 OwnerSpacing.xxl,
               ),
-              child: OwnerButton(
-                label: '오늘 마무리',
-                onPressed: _eveningMood != null ? _finish : null,
+              child: withTestId(
+                'evening-finish-btn',
+                OwnerButton(
+                  label: _submitting ? '저장 중...' : '오늘 마무리',
+                  onPressed: (_eveningMoodId != null && !_submitting)
+                      ? _finish
+                      : null,
+                ),
               ),
             ),
           ],
@@ -249,23 +269,14 @@ class _EveningRitualPageState extends State<EveningRitualPage> {
   }
 }
 
-const _eveningOptions = <({String id, String emoji, String label})>[
-  (id: 'calm', emoji: '😌', label: '평온'),
-  (id: 'happy', emoji: '😊', label: '기쁨'),
-  (id: 'strong', emoji: '💪', label: '뿌듯'),
-  (id: 'tired', emoji: '😮‍💨', label: '지침'),
-];
-
 class _EveningMoodCell extends StatelessWidget {
   const _EveningMoodCell({
-    required this.emoji,
-    required this.label,
+    required this.code,
     required this.selected,
     required this.onTap,
   });
 
-  final String emoji;
-  final String label;
+  final CodeDto code;
   final bool selected;
   final VoidCallback onTap;
 
@@ -284,10 +295,13 @@ class _EveningMoodCell extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 22)),
+              Text(
+                code.emoji ?? '',
+                style: const TextStyle(fontSize: 22),
+              ),
               const SizedBox(height: 4),
               Text(
-                label,
+                code.labelKo,
                 style: OwnerTypography.caption.copyWith(
                   color: OwnerColors.white,
                   fontWeight: FontWeight.w600,

@@ -1,79 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/codes/data/dto/code_dto.dart';
+import 'package:health_mate/features/codes/domain/codes_provider.dart';
 import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 명세: [오우너 목업디벨롭파일/04_onboarding_goal.json]
-class _GoalOption {
-  const _GoalOption({
-    required this.id,
-    required this.icon,
-    required this.accent,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String id;
-  final String icon;
-  final Color accent;
-  final String title;
-  final String subtitle;
-}
-
-class OnboardingGoalPage extends StatefulWidget {
+/// 명세: [docs/design/owner-mock-develop/04_onboarding_goal.json]
+class OnboardingGoalPage extends ConsumerStatefulWidget {
   const OnboardingGoalPage({super.key});
 
   @override
-  State<OnboardingGoalPage> createState() => _OnboardingGoalPageState();
+  ConsumerState<OnboardingGoalPage> createState() => _OnboardingGoalPageState();
 }
 
-class _OnboardingGoalPageState extends State<OnboardingGoalPage> {
-  static const _goals = <_GoalOption>[
-    _GoalOption(
-      id: 'energy',
-      icon: '⚡',
-      accent: OwnerColors.statEnergy,
-      title: '더 활기차게',
-      subtitle: '에너지 넘치는 하루를 만들어요',
-    ),
-    _GoalOption(
-      id: 'hydration',
-      icon: '💧',
-      accent: OwnerColors.statHydration,
-      title: '건강한 습관',
-      subtitle: '물 마시기, 식단 챙기기부터 차근차근',
-    ),
-    _GoalOption(
-      id: 'rest',
-      icon: '🌙',
-      accent: OwnerColors.statRest,
-      title: '잘 쉬고 싶어',
-      subtitle: '충분한 수면과 회복에 집중해요',
-    ),
-    _GoalOption(
-      id: 'shape',
-      icon: '🌸',
-      accent: OwnerColors.accentMint,
-      title: '몸이 가벼워졌으면',
-      subtitle: '꾸준한 운동과 식단 관리로 천천히',
-    ),
-  ];
-
+class _OnboardingGoalPageState extends ConsumerState<OnboardingGoalPage> {
   String? _selectedId;
+  String? _selectedGoalType;
 
   Future<void> _next() async {
     final id = _selectedId;
-    if (id == null) return;
+    final goalType = _selectedGoalType;
+    if (id == null || goalType == null) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(OwnerPrefsKeys.goalId, id);
+    await prefs.setString(OwnerPrefsKeys.goalType, goalType);
     if (!mounted) return;
     context.go('/onboarding/meet-moa');
   }
 
   @override
   Widget build(BuildContext context) {
+    final goalsAsync = ref.watch(codeGroupProvider('goal_option'));
+
     return Scaffold(
       backgroundColor: OwnerColors.bgElevated,
       body: SafeArea(
@@ -114,22 +75,31 @@ class _OnboardingGoalPageState extends State<OnboardingGoalPage> {
             ),
             const SizedBox(height: OwnerSpacing.xxl),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: OwnerSpacing.base,
+              child: goalsAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (_, __) =>
+                    const Center(child: Text('목표 옵션을 불러오지 못했어요')),
+                data: (options) => ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: OwnerSpacing.base,
+                  ),
+                  itemCount: options.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: OwnerSpacing.md),
+                  itemBuilder: (context, i) {
+                    final g = options[i];
+                    final sel = _selectedId == g.id;
+                    return _GoalListTile(
+                      code: g,
+                      selected: sel,
+                      onTap: () => setState(() {
+                        _selectedId = g.id;
+                        _selectedGoalType = g.metadata['goal_type'];
+                      }),
+                    );
+                  },
                 ),
-                itemCount: _goals.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: OwnerSpacing.md),
-                itemBuilder: (context, i) {
-                  final g = _goals[i];
-                  final sel = _selectedId == g.id;
-                  return _GoalListTile(
-                    goal: g,
-                    selected: sel,
-                    onTap: () => setState(() => _selectedId = g.id),
-                  );
-                },
               ),
             ),
             Padding(
@@ -141,7 +111,9 @@ class _OnboardingGoalPageState extends State<OnboardingGoalPage> {
               ),
               child: OwnerButton(
                 label: '이걸로 시작할게요',
-                onPressed: _selectedId != null ? _next : null,
+                onPressed: (_selectedId != null && _selectedGoalType != null)
+                    ? _next
+                    : null,
               ),
             ),
           ],
@@ -153,14 +125,21 @@ class _OnboardingGoalPageState extends State<OnboardingGoalPage> {
 
 class _GoalListTile extends StatelessWidget {
   const _GoalListTile({
-    required this.goal,
+    required this.code,
     required this.selected,
     required this.onTap,
   });
 
-  final _GoalOption goal;
+  final CodeDto code;
   final bool selected;
   final VoidCallback onTap;
+
+  static const _accentColorMap = <String, Color>{
+    'statEnergy': OwnerColors.statEnergy,
+    'statHydration': OwnerColors.statHydration,
+    'statRest': OwnerColors.statRest,
+    'accentMint': OwnerColors.accentMint,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +150,9 @@ class _GoalListTile extends StatelessWidget {
     final subStyle = OwnerTypography.bodySm.copyWith(
       color: selected ? OwnerColors.textOnAction : OwnerColors.textSecondary,
     );
+    final accentKey = code.metadata['accent_color'] ?? '';
+    final accentColor = _accentColorMap[accentKey] ?? OwnerColors.actionPrimary;
+    final subtitle = code.metadata['subtitle'] ?? '';
 
     return Material(
       color: bg,
@@ -192,15 +174,18 @@ class _GoalListTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(goal.icon, style: const TextStyle(fontSize: 32)),
+              Text(
+                code.emoji ?? '',
+                style: const TextStyle(fontSize: 32),
+              ),
               const SizedBox(width: OwnerSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(goal.title, style: titleStyle),
+                    Text(code.labelKo, style: titleStyle),
                     const SizedBox(height: OwnerSpacing.xs),
-                    Text(goal.subtitle, style: subStyle),
+                    Text(subtitle, style: subStyle),
                   ],
                 ),
               ),
@@ -208,7 +193,7 @@ class _GoalListTile extends StatelessWidget {
                 width: 4,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: goal.accent,
+                  color: accentColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

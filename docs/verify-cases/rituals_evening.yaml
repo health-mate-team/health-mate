@@ -1,0 +1,148 @@
+# 시범 카탈로그 — POST /rituals/evening 검증 케이스
+# 명세: docs/API_SPEC.md 섹션 4.5 (POST /rituals/evening)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["POST /rituals/evening"]
+
+schema_version: 1
+target: endpoint:POST /rituals/evening
+spec_section: docs/API_SPEC.md#4.5
+phase: p1
+feature: rituals
+
+storyboard:
+  summary: |
+    아침 기분 기록 + 약속 확정을 마친 사용자가 저녁에 들어와 약속 이행 여부를 보고한다.
+    promise_kept 값에 따라 XP·streak·level이 갱신되며, 같은 날 두 번째 호출은 거부된다.
+  steps:
+    - 사전조건: morning/mood 기록 + morning/promise 확정
+    - 사용자 액션: POST /rituals/evening { promise_kept }
+    - 기대 결과: xp_earned·total_xp·streak·level 반환, 약속 지킴 시 base+bonus
+  branches:
+    - 약속 지킴 (promise_kept=true) → xp_earned=60 (base 10 + bonus 50)
+    - 약속 미달성 (promise_kept=false) → xp_earned=10
+    - 같은 날 중복 호출 → 400 BAD_REQUEST
+
+# ──────────────────────────────────────────────────────
+# 사전조건 (case_ref 기반, 최대 깊이 5, DAG 강제)
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh           # endpoint 단위 기본
+  preconditions:
+    - case_ref: onboarding_complete#happy
+    - case_ref: rituals_morning_mood#happy
+    - case_ref: rituals_morning_promise#happy
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 약속 지킴 ──────────────────────────────
+  - id: happy_kept
+    name: 약속 지킴 → xp_earned=60, streak +1, level 갱신
+    request:
+      method: POST
+      path: /rituals/evening
+      body:
+        promise_kept: true
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [promise_kept, xp_earned, total_xp, streak, level]
+        properties:
+          promise_kept: { const: true }
+          xp_earned:    { type: integer, minimum: 60, maximum: 60 }
+          total_xp:     { type: integer, minimum: 0 }
+          streak:       { type: integer, minimum: 1 }
+          level:        { type: integer, minimum: 1 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: []      # evening 응답은 결정적 정수만 — 마스킹 불필요
+
+  # ── Happy: 약속 미달성 ────────────────────────────
+  - id: happy_not_kept
+    name: 약속 미달성 → xp_earned=10, streak ≥1
+    request:
+      method: POST
+      path: /rituals/evening
+      body:
+        promise_kept: false
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [promise_kept, xp_earned, total_xp, streak, level]
+        properties:
+          promise_kept: { const: false }
+          xp_earned:    { const: 10 }
+          total_xp:     { type: integer, minimum: 0 }
+          streak:       { type: integer, minimum: 1 }
+          level:        { type: integer, minimum: 1 }
+        additionalProperties: false
+    # 사전조건 override: happy_kept를 거치지 않은 신규 user 흐름
+    setup_override:
+      user: fresh
+      preconditions:
+        - case_ref: rituals_morning_mood#happy
+        - case_ref: rituals_morning_promise#happy
+    capture_fixture: true
+
+  # ── Error: 같은 날 중복 호출 ──────────────────────
+  - id: error_duplicate
+    name: 동일 사용자가 같은 날 두 번째 호출 → 400
+    request:
+      method: POST
+      path: /rituals/evening
+      body:
+        promise_kept: true
+      auth: required
+    expect:
+      status: 400
+      body_schema:
+        type: object
+        required: [statusCode, message]
+        properties:
+          statusCode: { const: 400 }
+          message:    { type: [string, array] }
+    setup_override:
+      preconditions:
+        - case_ref: rituals_evening#happy_kept     # 첫 번째 호출까지 마친 상태
+    capture_fixture: false                          # 에러 응답은 변동 가능 (i18n) → 캡처 X
+
+  # ── Auth: 토큰 없음 ───────────────────────────────
+  - id: error_unauthorized
+    name: Authorization 헤더 없음 → 401
+    request:
+      method: POST
+      path: /rituals/evening
+      body:
+        promise_kept: true
+      auth: none
+    expect:
+      status: 401
+    setup_override:
+      user: none      # 가입·온보딩 없음
+      preconditions: []
+    capture_fixture: false
+
+# ──────────────────────────────────────────────────────
+# DYNAMIC (UI 시나리오) — endpoint 단위는 비움
+# ──────────────────────────────────────────────────────
+dynamic:
+  ui_scenario: null   # 화면 단위 카탈로그(screen_evening_ritual.yaml)에서 정의
+
+screen_targets: []    # 본 카탈로그는 endpoint 대상
+
+# ──────────────────────────────────────────────────────
+# 메타
+# ──────────────────────────────────────────────────────
+meta:
+  authored_by: verify-feature-spec v0.2 시범
+  ported_from:
+    - backend/src/p1.integration.spec.ts (happy_kept, error_duplicate)
+    - backend/scripts/test-phase.sh#run_p1 (xp_earned 검증)
+  notes: |
+    rituals_morning_mood / rituals_morning_promise 카탈로그 작성 후
+    case_ref 정합성 재검증 필요.

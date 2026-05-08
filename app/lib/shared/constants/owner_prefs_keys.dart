@@ -5,6 +5,7 @@ class OwnerPrefsKeys {
   static const String onboardingDone = 'owner_onboarding_done';
   static const String displayName = 'owner_display_name';
   static const String goalId = 'owner_goal_id';
+  static const String goalType = 'owner_goal_type';
   static const String morningMoodId = 'owner_morning_mood_id';
 
   /// 아침 의식에서 확정한 오늘의 약속 (저녁 의식·홈 카드와 공유)

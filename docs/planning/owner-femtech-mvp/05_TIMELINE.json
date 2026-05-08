@@ -1,0 +1,202 @@
+{
+  "$schema": "./schemas/timeline.schema.json",
+  "module": "timeline",
+  "version": "1.0.0",
+  "purpose": "8주 안에 펨테크 MVP를 출시하고 50명 베타로 가설 검증까지 완료하는 일정.",
+  "principle": "병렬 작업 최대화. 운동 콘텐츠 촬영(W5)과 UI 구현(W3-4)은 의존성 없으므로 동시 진행 가능.",
+  "duration_weeks": 8,
+  "team_assumed": {
+    "designer": 1,
+    "flutter_dev": 2,
+    "pm": 1,
+    "external": ["PT 트레이너 (1일)", "영상 편집자 (외주)", "UX 리서처 (옵션)"]
+  },
+
+  "weeks": [
+    {
+      "week": 1,
+      "phase": "사이클 OS 데이터 모델 + 추천 엔진",
+      "goals": [
+        "02_CYCLE_OS 명세를 Flutter 데이터 모델로 구현",
+        "추천 엔진 알고리즘 작성 (단계 × 종류 매핑)",
+        "온보딩 단계 4 (생리주기 입력) 화면 명세 + 구현 시작"
+      ],
+      "deliverables": [
+        "Flutter: CycleService, RecommendationEngine 클래스",
+        "테스트: 단위 테스트로 단계 계산 검증",
+        "UI: 온보딩 4단계 와이어프레임"
+      ],
+      "owner": ["flutter_dev_1", "designer", "pm"],
+      "blockers_to_watch": [
+        "사이클 알고리즘의 edge case (불규칙 사용자 처리) 결정 미뤄지면 W2 작업 영향"
+      ]
+    },
+    {
+      "week": 2,
+      "phase": "사이클 OS 데이터 모델 + 추천 엔진 (계속)",
+      "goals": [
+        "추천 엔진 우선순위 규칙 구현 + 단위 테스트",
+        "사이클 캘린더 화면(13번째) 명세 작성 + UI 와이어프레임",
+        "에이전트 분석 이벤트 명세 확정 (04_SUCCESS_METRICS 기반)"
+      ],
+      "deliverables": [
+        "Flutter: 추천 엔진 v1 완성, 60+ 단위 테스트 통과",
+        "디자인: 사이클 캘린더 화면 컴포넌트 (Figma)",
+        "분석: 6개 이벤트 스키마 + 백엔드 수신 엔드포인트 준비"
+      ],
+      "owner": ["flutter_dev_1", "designer", "pm"]
+    },
+    {
+      "week": 3,
+      "phase": "UI 구현 — 핵심 화면",
+      "goals": [
+        "온보딩 + 13개 화면 중 핵심 6개(홈/모닝/이브닝/운동/캘린더/온보딩) 구현 완료",
+        "모아 캐릭터의 사이클 인식 표정·메시지 시스템 구현",
+        "디자인 토큰 v1.1 + 위젯 시스템 활용"
+      ],
+      "deliverables": [
+        "Flutter: 6개 핵심 화면 동작 가능",
+        "모아 캐릭터: 4단계 표정 변화 + 사이클 인식 메시지 50개 작성",
+        "QA: 핵심 화면 손맛 체크리스트"
+      ],
+      "owner": ["flutter_dev_1", "flutter_dev_2", "designer"]
+    },
+    {
+      "week": 4,
+      "phase": "UI 구현 — 보조 화면 + 통합",
+      "goals": [
+        "나머지 7개 화면 구현 (액션 페이지들, 진화, 진행 상태)",
+        "모든 화면 통합 + 네비게이션 플로우 검증",
+        "분석 이벤트 송신 코드 완료"
+      ],
+      "deliverables": [
+        "Flutter: 13개 화면 전체 통합",
+        "분석: 6개 이벤트 정상 송신 검증",
+        "QA: 전체 플로우 1회 통과"
+      ],
+      "owner": ["flutter_dev_1", "flutter_dev_2"]
+    },
+    {
+      "week": 5,
+      "phase": "운동 콘텐츠 제작 (병렬)",
+      "goals": [
+        "PT 트레이너 1명과 하루 일괄 촬영 (20개 영상)",
+        "오디오 가이드 녹음 (산책·호흡 영상 5-7개)",
+        "편집 외주 송출 + 인트로/아웃트로 디자인"
+      ],
+      "deliverables": [
+        "원본 영상 20개 + 오디오 가이드 5-7개",
+        "편집 진행 (영상당 1시간, 총 20시간 작업)",
+        "타이틀 카드 디자인 20세트"
+      ],
+      "owner": ["pm", "designer", "external_trainer"],
+      "parallel_with": "W3-W4 (UI 구현과 동시 진행)",
+      "cost_krw": "300-400만원"
+    },
+    {
+      "week": 6,
+      "phase": "QA + 5명 알파 테스트",
+      "goals": [
+        "운동 영상 앱 내 통합 + 재생 테스트",
+        "내부 5명에게 알파 배포 (팀원·지인)",
+        "치명 버그 수정 + 텍스트 다듬기"
+      ],
+      "deliverables": [
+        "TestFlight/Internal Testing 빌드",
+        "알파 피드백 정리 (UX 이슈 + 버그 리스트)",
+        "Critical 버그 0건",
+        "Major 버그 5건 이내"
+      ],
+      "owner": ["flutter_dev_1", "flutter_dev_2", "pm"]
+    },
+    {
+      "week": 7,
+      "phase": "50명 베타 시작 + Day 0 데이터 수집",
+      "goals": [
+        "베타 사용자 모집 50-100명",
+        "온보딩 + 베이스라인 설문 (KPI_01, OBS_01)",
+        "초기 사용 모니터링 (D1, D3, D7 체크포인트)"
+      ],
+      "deliverables": [
+        "베타 등록 50명 이상",
+        "Day 0 baseline 응답률 80% 이상",
+        "Day 1-3 활성 사용자 모니터링 대시보드"
+      ],
+      "owner": ["pm", "ux_researcher_optional"],
+      "recruiting_channels": [
+        "인스타 인플루언서 1-2명 (펨테크/웰니스 결)",
+        "친구·지인 1차 (팀원 네트워크)",
+        "온라인 커뮤니티 (여성 라이프스타일 카페)"
+      ]
+    },
+    {
+      "week": 8,
+      "phase": "베타 진행 + 중간 펄스",
+      "goals": [
+        "D14 펄스 설문 (간단)",
+        "활성 사용자 1:1 슬랙·메시지 케어",
+        "데이터 흐름 모니터링 + 이상치 점검"
+      ],
+      "deliverables": [
+        "D14 응답률 70% 이상",
+        "이탈 사용자 인터뷰 시도 (3-5명)",
+        "주간 데이터 리포트 1회"
+      ],
+      "owner": ["pm"]
+    }
+  ],
+
+  "post_beta": {
+    "week": "9-12 (베타 4주 완주 + 분석)",
+    "phase": "데이터 수집 완료 + 합격선 평가",
+    "goals": [
+      "Day 28 엔드라인 설문 완료",
+      "KPI_01 ~ KPI_05 산출",
+      "Promoter/Detractor 인터뷰 (각 5명)",
+      "04_SUCCESS_METRICS의 decision_tree에 따라 출시 결정"
+    ],
+    "deliverables": [
+      "베타 결과 리포트 (정량 + 정성)",
+      "출시 의사결정 문서",
+      "v1.1 백로그 (베타 인사이트 반영)"
+    ]
+  },
+
+  "critical_path": [
+    "W1: 사이클 OS 데이터 모델 → W3-4 화면 구현의 전제",
+    "W3-4: 13개 화면 → W6 알파 테스트의 전제",
+    "W5: 운동 영상 → W6 통합 테스트의 전제 (또는 일러스트 fallback)",
+    "W6: QA 완료 → W7 베타 배포의 전제",
+    "W7-W12: 4주 베타 = 정확히 1 사이클 검증 가능"
+  ],
+
+  "risk_buffers": {
+    "purpose": "지연 시 흡수할 여유 시간",
+    "buffers": [
+      {
+        "where": "W6 알파 테스트",
+        "buffer_days": 3,
+        "rationale": "치명 버그 발견 시 수정 시간"
+      },
+      {
+        "where": "W7 베타 모집",
+        "buffer_days": 5,
+        "rationale": "50명 모집이 예상보다 어려울 가능성"
+      }
+    ],
+    "fallback_for_video_delay": "W5 영상이 늦으면 일러스트 + 오디오만으로 베타 시작 (03_WORKOUT_MATRIX의 fallback_for_no_video 참조)"
+  },
+
+  "weekly_checkpoint_format": {
+    "purpose": "매주 금요일 30분 회의에서 사용할 체크 항목",
+    "questions": [
+      "이번 주 deliverables 달성률 %",
+      "blockers 발생 여부 + 해결책",
+      "다음 주 critical path 변경 필요 여부",
+      "리스크 (06_RISKS 참조) 발현 여부"
+    ]
+  },
+
+  "depends_on": ["01_HYPOTHESES", "02_CYCLE_OS", "03_WORKOUT_MATRIX", "04_SUCCESS_METRICS"],
+  "depended_by": ["06_RISKS"]
+}
