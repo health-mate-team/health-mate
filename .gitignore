@@ -17,8 +17,10 @@ app/.dart_tool/
 app/.flutter-plugins
 app/.flutter-plugins-dependencies
 app/.packages
+app/.metadata
 app/build/
 app/coverage/
+app/web/
 
 # ─── Flutter 코드 생성물 ────────────────────────────
 app/lib/**/*.g.dart
@@ -38,6 +40,7 @@ app/ios/Runner/GoogleService-Info.plist
 # ─── NestJS / Node ─────────────────────────────────
 backend/node_modules/
 backend/dist/
+backend/dist-scripts/
 backend/.env
 backend/coverage/
 
@@ -68,3 +71,19 @@ Thumbs.db
 
 # ─── Claude Code 작업 산출물 ───────────────────────
 scratch.md
+
+# Sandbox (auto-generated)
+docker-compose.sandbox.yml
+.sandbox-env
+
+# ─── verify-feature 캐시 (단위테스트 fixture artifact) ──
+.verify-cache/
+
+# ─── Playwright MCP 런타임 산출물 ──────────────────
+.playwright-mcp/
+
+# ─── Claude Code 런타임 락 ─────────────────────────
+.claude/scheduled_tasks.lock
+
+# ─── 루트 레벨 임시 스크린샷 ──────────────────────
+/*.png
