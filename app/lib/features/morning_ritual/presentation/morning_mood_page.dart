@@ -43,6 +43,8 @@ class _MorningMoodPageState extends ConsumerState<MorningMoodPage>
     final dateLabel = DateFormat.MMMEd('ko_KR').format(DateTime.now());
     const userName = '친구'; // TODO: users/me provider에서 이름 가져오기
     final moodAsync = ref.watch(codeGroupProvider('mood'));
+    final ritualAsync = ref.watch(ritualTodayProvider);
+    final isCompleted = ritualAsync.valueOrNull?.morningMood != null;
 
     return Scaffold(
       backgroundColor: OwnerColors.bgElevated,
@@ -64,6 +66,41 @@ class _MorningMoodPageState extends ConsumerState<MorningMoodPage>
                   style: OwnerTypography.overline,
                 ),
               ),
+              if (isCompleted)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    OwnerSpacing.base,
+                    OwnerSpacing.md,
+                    OwnerSpacing.base,
+                    0,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: OwnerSpacing.md,
+                      vertical: OwnerSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: OwnerColors.actionPrimary.withValues(alpha: 0.12),
+                      borderRadius: OwnerRadius.radiusMd,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline,
+                          size: OwnerIconSize.md,
+                          color: OwnerColors.actionPrimary,
+                        ),
+                        const SizedBox(width: OwnerSpacing.sm),
+                        Text(
+                          '오늘 아침 의식을 완료했어요',
+                          style: OwnerTypography.bodySm.copyWith(
+                            color: OwnerColors.actionPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               const SizedBox(height: OwnerSpacing.xl),
               Center(
                 child: Stack(
@@ -138,6 +175,7 @@ class _MorningMoodPageState extends ConsumerState<MorningMoodPage>
                       crossAxisCount: 4,
                       crossAxisSpacing: OwnerSpacing.sm,
                       mainAxisSpacing: OwnerSpacing.sm,
+                      childAspectRatio: 1 / 1.2,
                     ),
                     itemCount: options.length,
                     itemBuilder: (context, i) {
@@ -148,7 +186,7 @@ class _MorningMoodPageState extends ConsumerState<MorningMoodPage>
                           emoji: o.emoji ?? '',
                           label: o.labelKo,
                           selected: _selectedId == o.id,
-                          onTap: _submitting
+                          onTap: (isCompleted || _submitting)
                               ? null
                               : () => _onSelect(o.id, o.numericValue ?? 3),
                         ),

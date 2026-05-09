@@ -59,6 +59,7 @@ class _EveningRitualPageState extends ConsumerState<EveningRitualPage> {
   Widget build(BuildContext context) {
     final ritualAsync = ref.watch(ritualTodayProvider);
     final eveningMoodAsync = ref.watch(codeGroupProvider('evening_mood'));
+    final isCompleted = ritualAsync.valueOrNull?.eveningCompleted ?? false;
     final promiseText = ritualAsync.valueOrNull?.morningPromise ??
         '오늘의 약속을 아직 정하지 않았어요';
 
@@ -169,8 +170,10 @@ class _EveningRitualPageState extends ConsumerState<EveningRitualPage> {
                                 'evening-promise-checkbox',
                                 OwnerCheckbox(
                                   checked: _promiseKept,
-                                  onChanged: (next) =>
-                                      setState(() => _promiseKept = next),
+                                  onChanged: isCompleted
+                                      ? null
+                                      : (next) =>
+                                          setState(() => _promiseKept = next),
                                 ),
                               ),
                               const SizedBox(width: OwnerSpacing.sm),
@@ -228,9 +231,12 @@ class _EveningRitualPageState extends ConsumerState<EveningRitualPage> {
                                         code: options[i],
                                         selected:
                                             _eveningMoodId == options[i].id,
-                                        onTap: () => setState(
-                                          () => _eveningMoodId = options[i].id,
-                                        ),
+                                        onTap: isCompleted
+                                            ? null
+                                            : () => setState(
+                                                () => _eveningMoodId =
+                                                    options[i].id,
+                                              ),
                                       ),
                                     ),
                                   ),
@@ -255,10 +261,13 @@ class _EveningRitualPageState extends ConsumerState<EveningRitualPage> {
               child: withTestId(
                 'evening-finish-btn',
                 OwnerButton(
-                  label: _submitting ? '저장 중...' : '오늘 마무리',
-                  onPressed: (_eveningMoodId != null && !_submitting)
-                      ? _finish
-                      : null,
+                  label: isCompleted
+                      ? '이미 완료했어요'
+                      : (_submitting ? '저장 중...' : '오늘 마무리'),
+                  onPressed:
+                      (isCompleted || _eveningMoodId == null || _submitting)
+                          ? null
+                          : _finish,
                 ),
               ),
             ),
@@ -278,7 +287,7 @@ class _EveningMoodCell extends StatelessWidget {
 
   final CodeDto code;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

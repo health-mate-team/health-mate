@@ -15,7 +15,6 @@ class WaterActionPage extends ConsumerStatefulWidget {
 }
 
 class _WaterActionPageState extends ConsumerState<WaterActionPage> {
-  int _sessionAdded = 0;
   bool _justDrank = false;
 
   @override
@@ -26,7 +25,7 @@ class _WaterActionPageState extends ConsumerState<WaterActionPage> {
   int get _serverCups =>
       ref.watch(waterTodayProvider).valueOrNull?.cupsTotal ?? 0;
 
-  int get _displayCups => (_serverCups + _sessionAdded).clamp(0, 8);
+  int get _displayCups => _serverCups.clamp(0, 8);
 
   String _feedbackText() {
     final n = _displayCups;
@@ -50,13 +49,14 @@ class _WaterActionPageState extends ConsumerState<WaterActionPage> {
 
   void _addCup() {
     if (_displayCups >= 8) return;
-    setState(() => _sessionAdded++);
     _afterDrinkPulse();
+    // provider의 낙관적 업데이트가 cupsTotal +1을 즉시 반영하므로 setState 불필요
     ref.read(waterTodayProvider.notifier).addCup().ignore();
   }
 
   void _close() {
-    context.pop(WaterActionResult(glassesAdded: _sessionAdded));
+    // 세션 카운터 대신 서버 기준 값을 사용하므로 0 전달 (호출부에서 서버 값 직접 조회)
+    context.pop(const WaterActionResult(glassesAdded: 0));
   }
 
   @override
