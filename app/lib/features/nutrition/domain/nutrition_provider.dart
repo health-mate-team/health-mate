@@ -23,7 +23,7 @@ class NutritionTodayNotifier extends AsyncNotifier<NutritionTodayDto?> {
   Future<NutritionLogResponse?> logMeal(NutritionLogRequest req) async {
     final repo = ref.read(nutritionRepositoryProvider);
     final resp = await repo.logMeal(req);
-    ref.invalidateSelf();
+    await refresh();
     return resp;
   }
 }

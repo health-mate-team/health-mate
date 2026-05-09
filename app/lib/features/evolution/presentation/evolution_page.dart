@@ -7,6 +7,7 @@ import 'package:health_mate/core/theme/owner/owner_design_system.dart';
 import 'package:health_mate/features/evolution/domain/rewards_provider.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
+
 /// 명세: [docs/design/owner-mock-develop/12_evolution.json] — 단색 단계 전환만 사용 (그라디언트 없음).
 class _StageData {
   const _StageData({
@@ -66,32 +67,19 @@ _StageData _stageForLevel(int level) {
 }
 
 class EvolutionPage extends ConsumerStatefulWidget {
-  const EvolutionPage({super.key, this.newLevel});
-
-  final int? newLevel;
+  const EvolutionPage({super.key});
 
   @override
   ConsumerState<EvolutionPage> createState() => _EvolutionPageState();
 }
 
 class _EvolutionPageState extends ConsumerState<EvolutionPage> {
-  late _StageData _stage;
   int _phase = 0;
 
   @override
   void initState() {
     super.initState();
-    _stage = _stageForLevel(widget.newLevel ?? 1);
     unawaited(_runIntro());
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final summary = ref.read(rewardsSummaryProvider).valueOrNull;
-    if (summary != null) {
-      setState(() => _stage = _stageForLevel(summary.level));
-    }
   }
 
   Future<void> _runIntro() async {
@@ -111,6 +99,11 @@ class _EvolutionPageState extends ConsumerState<EvolutionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final summaryAsync = ref.watch(rewardsSummaryProvider);
+    final level = summaryAsync.valueOrNull?.level ?? 1;
+    final stage = _stageForLevel(level);
+    final levelLabel = summaryAsync.isLoading ? '...' : '$level';
+
     if (_phase < 2) {
       return Scaffold(
         backgroundColor: _phase == 0
@@ -195,7 +188,7 @@ class _EvolutionPageState extends ConsumerState<EvolutionPage> {
             ),
             const SizedBox(height: OwnerSpacing.md),
             Text(
-              'Lv.${widget.newLevel}',
+              'Lv.$levelLabel',
               style: OwnerTypography.displayXl.copyWith(
                 color: OwnerColors.actionPrimary,
               ),
@@ -203,12 +196,12 @@ class _EvolutionPageState extends ConsumerState<EvolutionPage> {
             ),
             const SizedBox(height: OwnerSpacing.sm),
             Text(
-              '${_stage.icon} ${_stage.name}',
+              '${stage.icon} ${stage.name}',
               style: OwnerTypography.h1,
               textAlign: TextAlign.center,
             ),
             Text(
-              'Lv.${widget.newLevel} 도달',
+              'Lv.$levelLabel 도달',
               style: OwnerTypography.body.copyWith(
                 color: OwnerColors.textSecondary,
               ),
@@ -248,7 +241,7 @@ class _EvolutionPageState extends ConsumerState<EvolutionPage> {
                           children: [
                             Text('새로 풀린 것들', style: OwnerTypography.overline),
                             const SizedBox(height: OwnerSpacing.md),
-                            for (final p in _stage.perks)
+                            for (final p in stage.perks)
                               Padding(
                                 padding: const EdgeInsets.only(
                                   bottom: OwnerSpacing.sm,

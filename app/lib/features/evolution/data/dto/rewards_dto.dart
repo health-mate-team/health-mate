@@ -93,7 +93,7 @@ class RewardsSummaryDto {
 
   factory RewardsSummaryDto.fromJson(Map<String, dynamic> json) =>
       RewardsSummaryDto(
-        level: (json['level'] as num).toInt(),
+        level: (json['level'] as num? ?? 1).toInt(),
         currentXp: (json['current_xp'] as num).toInt(),
         xpToNextLevel: (json['xp_to_next_level'] as num? ?? 0).toInt(),
         totalXpEarned: (json['total_xp_earned'] as num? ?? 0).toInt(),

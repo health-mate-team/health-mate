@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/action/presentation/water_action_page.dart';
 import 'package:health_mate/features/action/presentation/water_action_result.dart';
 import 'package:health_mate/features/home/data/dto/stats_dto.dart';
 import 'package:health_mate/features/home/domain/stats_provider.dart';
@@ -189,12 +190,13 @@ class _HomeCharacterPageState extends ConsumerState<HomeCharacterPage> {
                     OwnerQuickActionButton(
                       label: '+ 물 한 컵',
                       onPressed: () async {
-                        final r = await context.push<WaterActionResult?>(
-                          '/action/water',
+                        await showModalBottomSheet<WaterActionResult?>(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => WaterActionPage(),
                         );
-                        if (r != null && r.glassesAdded > 0 && mounted) {
-                          ref.invalidate(statsProvider);
-                        }
+                        if (mounted) ref.invalidate(statsProvider);
                       },
                     ),
                   ),
@@ -218,7 +220,7 @@ class _HomeCharacterPageState extends ConsumerState<HomeCharacterPage> {
                 Expanded(
                   child: OwnerQuickActionButton(
                     label: '+ 식사',
-                    onPressed: () {},
+                    onPressed: () => context.push('/nutrition'),
                   ),
                 ),
               ],
