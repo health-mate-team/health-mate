@@ -3,24 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:health_mate/core/analytics/analytics_event.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
-import 'package:health_mate/features/cycle/domain/entities/cycle_phase.dart';
-import 'package:health_mate/features/cycle/presentation/cycle_providers.dart';
-import 'package:health_mate/features/cycle/static_data/phase_profiles.dart';
+import 'package:health_mate/features/action/data/actions_repository.dart';
+import 'package:health_mate/features/action/data/dto/action_dto.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
 /// 명세: [docs/design/owner-mock-develop/10_action_walk.json]
-/// 사이클 단계가 활성이면 모아 표정·격려 메시지 + 종료 시 workout_completed 송신.
 enum _WalkUiPhase { beforeStart, inProgress, completed }
-
-int _xpForWalkSeconds(int seconds) {
-  if (seconds < 300) return 5;
-  if (seconds < 900) return 10;
-  if (seconds < 1800) return 25;
-  return 40;
-}
 
 class WalkActionPage extends ConsumerStatefulWidget {
   const WalkActionPage({super.key});
@@ -33,6 +22,8 @@ class _WalkActionPageState extends ConsumerState<WalkActionPage> {
   _WalkUiPhase _phase = _WalkUiPhase.beforeStart;
   int _seconds = 0;
   Timer? _timer;
+  String? _walkSessionId;
+  DateTime? _startedAt;
 
   @override
   void dispose() {
@@ -40,38 +31,45 @@ class _WalkActionPageState extends ConsumerState<WalkActionPage> {
     super.dispose();
   }
 
-  void _start() {
+  Future<void> _start() async {
+    final now = DateTime.now();
     setState(() {
       _phase = _WalkUiPhase.inProgress;
       _seconds = 0;
+      _startedAt = now;
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _seconds++);
     });
+    try {
+      final repo = ref.read(actionsRepositoryProvider);
+      final resp = await repo.startWalk(
+        WalkStartRequest(startedAt: now.toUtc().toIso8601String()),
+      );
+      _walkSessionId = resp.walkSessionId;
+    } catch (_) {
+      // 네트워크 실패 시 로컬 타이머만 동작
+    }
   }
 
-  void _endWalk() {
+  Future<void> _endWalk() async {
     _timer?.cancel();
-    // 1분 이상 산책했고 cycle 입력이 있을 때만 light_cardio workout_completed 로 기록.
-    // cycle 없으면 임의 phase fallback 대신 이벤트 미송신 — 분석 정직성 유지.
-    // (cycle 없는 사용자의 산책 활동은 별도 generic 이벤트로 향후 분리 예정.)
-    if (_seconds >= 60) {
-      final cycle = ref.read(computedStateNotifierProvider);
-      if (cycle != null) {
-        final phase = cycle.phase;
-        final workoutId = 'light_cardio__${phase.id}';
-        final recorder = ref.read(analyticsRecorderProvider);
-        unawaited(recorder.record(AnalyticsEvent.workoutCompleted(
-          workoutId: workoutId,
-          phase: phase,
-          durationTargetSeconds: 300,
-          durationActualSeconds: _seconds,
-          ts: DateTime.now(),
-        )));
+    setState(() => _phase = _WalkUiPhase.completed);
+    if (_walkSessionId != null && _startedAt != null) {
+      try {
+        final repo = ref.read(actionsRepositoryProvider);
+        await repo.completeWalk(WalkCompleteRequest(
+          walkSessionId: _walkSessionId!,
+          endedAt: DateTime.now().toUtc().toIso8601String(),
+          durationMinutes: _seconds ~/ 60,
+          stepsCount: _seconds * 2,
+          distanceKm: (_seconds * 2 * 0.0007),
+        ));
+      } catch (_) {
+        // 완료 실패 시 UI만 전환
       }
     }
-    setState(() => _phase = _WalkUiPhase.completed);
   }
 
   void _confirmExit() {
@@ -84,10 +82,8 @@ class _WalkActionPageState extends ConsumerState<WalkActionPage> {
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  int get _stepsStub => _seconds * 2;
-
-  String get _distanceKmStub =>
-      (_stepsStub * 0.0007).toStringAsFixed(2);
+  int get _steps => _seconds * 2;
+  String get _distanceKmLabel => (_steps * 0.0007).toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
@@ -110,21 +106,20 @@ class _WalkActionPageState extends ConsumerState<WalkActionPage> {
         child: switch (_phase) {
           _WalkUiPhase.beforeStart => _BeforeStart(
               key: const ValueKey('before'),
-              cyclePhase: ref.watch(computedStateNotifierProvider)?.phase,
               onStart: _start,
             ),
           _WalkUiPhase.inProgress => _InProgress(
               key: const ValueKey('during'),
               timeLabel: _timeLabel,
-              steps: _stepsStub,
-              distanceKm: _distanceKmStub,
+              steps: _steps,
+              distanceKm: _distanceKmLabel,
               onEnd: _endWalk,
             ),
           _WalkUiPhase.completed => _Completed(
               key: const ValueKey('done'),
               timeLabel: _timeLabel,
-              steps: _stepsStub,
-              xp: _xpForWalkSeconds(_seconds),
+              steps: _steps,
+              xp: 30,
               onOk: _confirmExit,
             ),
         },
@@ -134,31 +129,9 @@ class _WalkActionPageState extends ConsumerState<WalkActionPage> {
 }
 
 class _BeforeStart extends StatelessWidget {
-  const _BeforeStart({
-    super.key,
-    required this.onStart,
-    this.cyclePhase,
-  });
+  const _BeforeStart({super.key, required this.onStart});
 
   final VoidCallback onStart;
-  final CyclePhase? cyclePhase;
-
-  String _greeting() {
-    final p = cyclePhase;
-    if (p == null) return '함께 걸으러 가요';
-    return switch (p) {
-      CyclePhase.menstrual => '천천히, 가볍게 걸어볼까요',
-      CyclePhase.follicular => '심박을 살짝 올리는 워킹 어때요',
-      CyclePhase.ovulatory => '활기차게! 오늘 컨디션 최고예요',
-      CyclePhase.luteal => '풍경 보며 마음 진정 산책',
-    };
-  }
-
-  OwnerMoaExpression _expr() {
-    final p = cyclePhase;
-    if (p == null) return OwnerMoaExpression.happy;
-    return moaExpressionFor(p);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,9 +140,9 @@ class _BeforeStart extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 40),
-          OwnerMoaAvatar(
+          const OwnerMoaAvatar(
             size: 140,
-            expression: _expr(),
+            expression: OwnerMoaExpression.happy,
           ),
           const SizedBox(height: OwnerSpacing.xl),
           Text(
@@ -179,7 +152,7 @@ class _BeforeStart extends StatelessWidget {
           ),
           const SizedBox(height: OwnerSpacing.sm),
           Text(
-            _greeting(),
+            '함께 걸으러 가요',
             style: OwnerTypography.bodySm,
             textAlign: TextAlign.center,
           ),

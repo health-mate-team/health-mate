@@ -1,0 +1,69 @@
+# 케이스 카탈로그 — GET /rituals/today
+# 명세: docs/API_SPEC.md#4.5 (Rituals — 아침/저녁 의식)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["GET /rituals/today"]
+
+schema_version: 1
+target: endpoint:GET /rituals/today
+spec_section: docs/API_SPEC.md#4.5
+phase: p1
+feature: rituals
+
+storyboard:
+  summary: |
+    사용자가 오늘의 의식 상태(아침 기분·약속·저녁 완료 여부)를 조회한다.
+    온보딩 직후 초기 상태: morning_mood=null, morning_promise=null, evening_completed=false.
+    인증 없으면 401을 반환한다.
+  steps:
+    - 사전조건: 온보딩 완료, 오늘 아직 의식 미수행
+    - 사용자 액션: GET /rituals/today
+    - '기대 결과: 200 + data.{ date, morning_mood, morning_promise, evening_completed, promise_kept, xp_earned_today }'
+  branches:
+    - 온보딩 후 첫 조회(초기 상태) → 200 + morning_mood=null, evening_completed=false
+    - 토큰 없음 → 401
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: onboarding_complete#happy
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 의식 초기 상태 ─────────────────────────
+  - id: init_state
+    name: 온보딩 후 첫 조회 → 200 + 모두 null/false (초기 상태)
+    request:
+      method: GET
+      path: /rituals/today
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [date, morning_mood, morning_promise, evening_completed, promise_kept, xp_earned_today]
+        properties:
+          date:             { type: string }          # YYYY-MM-DD
+          morning_mood:     { type: "null" }
+          morning_promise:  { type: "null" }
+          evening_completed: { type: boolean, const: false }
+          promise_kept:     { type: boolean, const: false }
+          xp_earned_today:  { type: integer, const: 0 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [date]
+
+  # ── 경계: 토큰 없음 ───────────────────────────────
+  - id: error_unauth
+    name: 토큰 없음 → 401 Unauthorized
+    request:
+      method: GET
+      path: /rituals/today
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

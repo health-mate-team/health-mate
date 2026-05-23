@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T11:10:23.487Z",
+  "target": "endpoint:POST /rituals/evening",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_kept",
+          "caseName": "약속 지킴 → xp_earned=60, streak +1, level 갱신",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/rituals_evening/happy_kept.json"
+        },
+        {
+          "caseId": "happy_not_kept",
+          "caseName": "약속 미달성 → xp_earned=10, streak ≥1",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/rituals_evening/happy_not_kept.json"
+        },
+        {
+          "caseId": "error_duplicate",
+          "caseName": "동일 사용자가 같은 날 두 번째 호출 → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauthorized",
+          "caseName": "Authorization 헤더 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_kept",
+          "caseName": "약속 지킴 → xp_earned=60, streak +1, level 갱신",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "happy_not_kept",
+          "caseName": "약속 미달성 → xp_earned=10, streak ≥1",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_duplicate",
+          "caseName": "동일 사용자가 같은 날 두 번째 호출 → 400",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauthorized",
+          "caseName": "Authorization 헤더 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

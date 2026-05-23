@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:38:59.989Z",
+  "target": "endpoint:POST /auth/login",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "올바른 credentials → 200 + token + is_onboarding_completed",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/auth_login/happy.json"
+        },
+        {
+          "caseId": "error_wrong_email",
+          "caseName": "존재하지 않는 이메일 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_wrong_pw",
+          "caseName": "비밀번호 불일치 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "올바른 credentials → 200 + token + is_onboarding_completed",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "올바른 credentials → 200 + token + is_onboarding_completed",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_wrong_email",
+          "caseName": "존재하지 않는 이메일 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_wrong_pw",
+          "caseName": "비밀번호 불일치 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

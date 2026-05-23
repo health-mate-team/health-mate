@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:41:40.578Z",
+  "target": "endpoint:POST /onboarding/complete",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "정상 온보딩 완료 → 200 + initial_stats + current_phase",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/onboarding_complete/happy.json"
+        },
+        {
+          "caseId": "error_bad_goal_type",
+          "caseName": "폐기된 goal_type(weight) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "정상 온보딩 완료 → 200 + initial_stats + current_phase",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "정상 온보딩 완료 → 200 + initial_stats + current_phase",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_bad_goal_type",
+          "caseName": "폐기된 goal_type(weight) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

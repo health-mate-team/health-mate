@@ -1,34 +1,57 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:health_mate/core/di/providers.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
-import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
+import 'package:health_mate/features/codes/domain/codes_provider.dart';
+import 'package:health_mate/features/users/data/users_repository.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+    _warmupCodes();
     _timer = Timer(const Duration(milliseconds: 1500), _goNext);
+  }
+
+  // codesRepository가 API 실패 시 assets/seed/codes.json 번들 fallback을 처리한다.
+  // 다음 화면 진입 시 codeGroupProvider가 즉시 데이터를 반환하도록 사전 로드.
+  Future<void> _warmupCodes() async {
+    try {
+      await ref.read(codesProvider.future);
+    } catch (_) {
+      // 번들 로드까지 실패한 경우는 화면 측에서 빈 리스트로 처리.
+    }
   }
 
   Future<void> _goNext() async {
     if (!mounted) return;
-    final prefs = await SharedPreferences.getInstance();
-    final done = prefs.getBool(OwnerPrefsKeys.onboardingDone) ?? false;
-    if (!mounted) return;
-    context.go(done ? '/home' : '/onboarding/welcome');
+    final token = await ref.read(tokenStorageProvider).getAccessToken();
+    if (token == null) {
+      if (!mounted) return;
+      context.go('/onboarding/welcome');
+      return;
+    }
+    try {
+      final me = await ref.read(usersRepositoryProvider).getMe();
+      if (!mounted) return;
+      context.go(me.isOnboardingCompleted ? '/home' : '/onboarding/welcome');
+    } catch (_) {
+      if (!mounted) return;
+      context.go('/onboarding/welcome');
+    }
   }
 
   @override

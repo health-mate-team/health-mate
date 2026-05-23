@@ -1,0 +1,86 @@
+# 케이스 카탈로그 — POST /auth/login
+# 명세: docs/API_SPEC.md#4.1 (Auth — 인증)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["POST /auth/login"]
+
+schema_version: 1
+target: endpoint:POST /auth/login
+spec_section: docs/API_SPEC.md#4.1
+phase: p0
+feature: auth
+
+storyboard:
+  summary: |
+    가입된 사용자가 이메일·비밀번호로 로그인한다.
+    성공 시 access_token과 is_onboarding_completed 플래그를 반환한다.
+    존재하지 않는 이메일이나 비밀번호 불일치 시 401을 반환한다.
+  steps:
+    - 사전조건: 이메일/비밀번호로 가입된 사용자 존재
+    - 사용자 액션: POST /auth/login { email, password }
+    - 기대 결과: 200 + data.{ access_token, is_onboarding_completed }
+  branches:
+    - 올바른 credentials → 200 + token + is_onboarding_completed=false (온보딩 전)
+    - 존재하지 않는 이메일 → 401 Unauthorized
+    - 비밀번호 불일치 → 401 Unauthorized
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy   # 로그인 전 가입 완료 상태
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 정상 로그인 ────────────────────────────
+  - id: happy
+    name: 올바른 credentials → 200 + token + is_onboarding_completed
+    request:
+      method: POST
+      path: /auth/login
+      body:
+        email: "{{fresh_email}}"
+        password: "Test1234!"
+      auth: none
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [access_token, is_onboarding_completed]
+        properties:
+          access_token:           { type: string, minLength: 10 }
+          is_onboarding_completed: { type: boolean, const: false }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [access_token]
+
+  # ── 오류: 존재하지 않는 이메일 ───────────────────
+  - id: error_wrong_email
+    name: 존재하지 않는 이메일 → 401 Unauthorized
+    request:
+      method: POST
+      path: /auth/login
+      body:
+        email: "nonexistent@owner.app"
+        password: "Test1234!"
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false
+
+  # ── 오류: 비밀번호 불일치 ─────────────────────────
+  - id: error_wrong_pw
+    name: 비밀번호 불일치 → 401 Unauthorized
+    request:
+      method: POST
+      path: /auth/login
+      body:
+        email: "{{fresh_email}}"
+        password: "WrongPass999!"
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
-import 'package:health_mate/features/survey/presentation/survey_providers.dart';
+import 'package:health_mate/features/onboarding/data/dto/onboarding_dto.dart';
+import 'package:health_mate/features/onboarding/data/onboarding_repository.dart';
 import 'package:health_mate/shared/constants/owner_prefs_keys.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 명세: [docs/design/owner-mock-develop/05_onboarding_meet_moa.json]
 enum _MeetScene { eggIdle, eggCracking, moaAppearing }
@@ -25,6 +25,8 @@ class _OnboardingMeetMoaPageState extends ConsumerState<OnboardingMeetMoaPage>
     with SingleTickerProviderStateMixin {
   _MeetScene _scene = _MeetScene.eggIdle;
   String _name = '친구';
+  bool _submitting = false;
+  String? _errorText;
   late final AnimationController _wiggle;
 
   @override
@@ -61,12 +63,42 @@ class _OnboardingMeetMoaPageState extends ConsumerState<OnboardingMeetMoaPage>
   }
 
   Future<void> _finish() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(OwnerPrefsKeys.onboardingDone, true);
-    // 04_SUCCESS_METRICS.measurement_window 의 D0 기록 (1회만).
-    await ref.read(surveyTriggerServiceProvider).ensureBetaStartDate();
-    if (!mounted) return;
-    context.go('/home');
+    if (_submitting) return;
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final name = prefs.getString(OwnerPrefsKeys.displayName) ?? _name;
+      final goalType = prefs.getString(OwnerPrefsKeys.goalType) ?? 'energy';
+
+      // 디자인 흐름에 cycle 입력 화면 미존재 — MVP defaults.
+      // (Phase 2에서 별도 입력 화면 추가 예정)
+      final today = DateTime.now();
+      final lastPeriodStart = today.subtract(const Duration(days: 1));
+      final iso =
+          '${lastPeriodStart.year.toString().padLeft(4, '0')}-${lastPeriodStart.month.toString().padLeft(2, '0')}-${lastPeriodStart.day.toString().padLeft(2, '0')}';
+
+      await ref.read(onboardingRepositoryProvider).complete(
+            OnboardingCompleteRequest(
+              name: name,
+              goalType: goalType,
+              lastPeriodStartDate: iso,
+              averageCycleLength: 28,
+              averagePeriodLength: 5,
+              isIrregular: false,
+            ),
+          );
+      await prefs.setBool(OwnerPrefsKeys.onboardingDone, true);
+      if (!mounted) return;
+      context.go('/home');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorText = '온보딩 완료 처리에 실패했어요. 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -156,6 +188,16 @@ class _OnboardingMeetMoaPageState extends ConsumerState<OnboardingMeetMoaPage>
                               textAlign: TextAlign.center,
                             ),
                     ),
+                    if (_errorText != null) ...[
+                      const SizedBox(height: OwnerSpacing.sm),
+                      Text(
+                        _errorText!,
+                        textAlign: TextAlign.center,
+                        style: OwnerTypography.caption.copyWith(
+                          color: OwnerColors.error,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -169,8 +211,8 @@ class _OnboardingMeetMoaPageState extends ConsumerState<OnboardingMeetMoaPage>
               ),
               child: _scene == _MeetScene.moaAppearing
                   ? OwnerButton(
-                      label: '함께 시작하기',
-                      onPressed: _finish,
+                      label: _submitting ? '처리 중...' : '함께 시작하기',
+                      onPressed: _submitting ? null : _finish,
                     )
                   : const SizedBox(height: 52),
             ),

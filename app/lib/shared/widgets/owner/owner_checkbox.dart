@@ -9,12 +9,12 @@ class OwnerCheckbox extends StatelessWidget {
   });
 
   final bool checked;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onChanged(!checked),
+      onTap: onChanged == null ? null : () => onChanged!(!checked),
       child: AnimatedContainer(
         duration: OwnerMotion.fast,
         curve: OwnerMotion.bouncy,

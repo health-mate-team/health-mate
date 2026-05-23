@@ -1,0 +1,105 @@
+# 케이스 카탈로그 — POST /auth/register
+# 명세: docs/API_SPEC.md#4.1 (Auth — 인증)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["POST /auth/register"]
+
+schema_version: 1
+target: endpoint:POST /auth/register
+spec_section: docs/API_SPEC.md#4.1
+phase: p0
+feature: auth
+
+storyboard:
+  summary: |
+    신규 사용자가 이메일·비밀번호·이름으로 가입 요청한다.
+    성공 시 access_token을 즉시 반환한다.
+    이미 가입된 이메일이면 409, DTO 검증 실패(이메일 형식·비밀번호 길이)면 400을 반환한다.
+  steps:
+    - 사전조건: 가입하려는 이메일이 DB에 없음
+    - 사용자 액션: POST /auth/register { email, password, name }
+    - 기대 결과: 201 + data.access_token (JWT 문자열)
+  branches:
+    - 정상 가입 → 201 + access_token 반환
+    - 중복 이메일 → 409 Conflict
+    - 이메일 형식 오류 → 400 Bad Request (ValidationPipe)
+    - 비밀번호 6자 미만 → 400 Bad Request (ValidationPipe)
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh   # 케이스별 고유 이메일 생성 (인터프리터가 자동 주입)
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 신규 가입 ──────────────────────────────
+  - id: happy
+    name: 신규 이메일 가입 → 201 + access_token
+    request:
+      method: POST
+      path: /auth/register
+      body:
+        email: "{{fresh_email}}"
+        password: "Test1234!"
+        name: "테스터"
+      auth: none
+    expect:
+      status: 201
+      body_schema:
+        type: object
+        required: [access_token]
+        properties:
+          access_token: { type: string, minLength: 10 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [access_token]   # JWT는 매 실행마다 달라짐
+
+  # ── 오류: 중복 이메일 ─────────────────────────────
+  - id: error_dup_email
+    name: 중복 이메일 재가입 → 409 Conflict
+    request:
+      method: POST
+      path: /auth/register
+      body:
+        email: "{{fresh_email}}"
+        password: "Test1234!"
+        name: "테스터"
+      auth: none
+    setup:
+      preconditions:
+        - case_ref: auth_register#happy   # 동일 이메일로 먼저 가입
+    expect:
+      status: 409
+    capture_fixture: false
+
+  # ── 오류: 이메일 형식 ─────────────────────────────
+  - id: error_invalid_email
+    name: 잘못된 이메일 형식 → 400 Bad Request
+    request:
+      method: POST
+      path: /auth/register
+      body:
+        email: "not-an-email"
+        password: "Test1234!"
+        name: "테스터"
+      auth: none
+    expect:
+      status: 400
+    capture_fixture: false
+
+  # ── 오류: 비밀번호 너무 짧음 ──────────────────────
+  - id: error_short_pw
+    name: 비밀번호 6자 미만 → 400 Bad Request
+    request:
+      method: POST
+      path: /auth/register
+      body:
+        email: "{{fresh_email}}"
+        password: "abc"
+        name: "테스터"
+      auth: none
+    expect:
+      status: 400
+    capture_fixture: false

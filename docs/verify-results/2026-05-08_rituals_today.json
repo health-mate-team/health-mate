@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:46:50.242Z",
+  "target": "endpoint:GET /rituals/today",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "init_state",
+          "caseName": "온보딩 후 첫 조회 → 200 + 모두 null/false (초기 상태)",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/rituals_today/init_state.json"
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "init_state",
+          "caseName": "온보딩 후 첫 조회 → 200 + 모두 null/false (초기 상태)",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "init_state",
+          "caseName": "온보딩 후 첫 조회 → 200 + 모두 null/false (초기 상태)",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

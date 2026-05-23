@@ -1,0 +1,88 @@
+# 화면 단위 카탈로그 — evening_ritual_page UI 시나리오
+# 명세: docs/API_SPEC.md 섹션 4.5 (POST /rituals/evening)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# test key 규약: docs/design/widget-test-key-convention.md
+# 실행: npx ts-node --project scripts/tsconfig.json scripts/run-ui-scenario.ts \
+#         --target screen_evening_ritual [--base-url http://localhost:3000]
+
+schema_version: 1
+target: 'screen:evening_ritual_page'
+spec_section: docs/API_SPEC.md#4.5
+phase: p1
+feature: rituals
+
+storyboard:
+  summary: |
+    약속을 설정한 사용자가 저녁 의식 화면에 진입하여 약속 이행 여부를 체크하고
+    저녁 기분을 선택한 뒤 '오늘 마무리' 버튼을 탭한다.
+    POST /rituals/evening 요청이 전송되고 홈으로 이동한다.
+  steps:
+    - '사전조건: morning/mood + morning/promise 완료 상태 (auth 포함)'
+    - '사용자 진입: /evening/ritual 페이지 navigate'
+    - '약속 체크박스 탭 (promise_kept=true)'
+    - '저녁 기분 선택 (mood-cell-1)'
+    - '"오늘 마무리" 버튼 탭'
+    - 'POST /rituals/evening 응답 대기 → status=200, promise_kept=true'
+    - '콘솔 에러 0건 확인'
+
+# ─── Playwright 셀렉터 주의사항 ─────────────────────────────────
+# Flutter Web 3.41.9: flt-semantics-identifier DOM 속성 미노출
+# → role+name 기반 ARIA 접근성 트리 셀렉터 사용
+# → withTestId의 ValueKey는 flutter_test에서만 사용
+
+# ─── DYNAMIC Stage: UI 시나리오 ──────────────────────────────────
+dynamic:
+  ui_scenario:
+    # Step 0: 페이지 이동
+    - action: navigate
+      to: /evening/ritual
+
+    # Step 1: 초기 상태 스냅샷
+    - action: snapshot
+      label: initial
+
+    # Step 2: 약속 체크박스 탭 (promise_kept=true)
+    # withTestId('evening-promise-checkbox') → role=checkbox
+    - action: click
+      selector:
+        role: checkbox
+
+    # Step 3: 저녁 기분 선택 (첫 번째 옵션)
+    # OwnerButton finish는 eveningMoodId가 null이면 비활성 → 반드시 mood 먼저 선택
+    # withTestId('evening-mood-cell-0') → role=generic (첫 번째 기분 카드)
+    # 텍스트 기반으로 클릭 (코드에서 label=한국어 감정명)
+    - action: click
+      selector:
+        role: button
+        name: '좋아요'
+        index: 0
+
+    # Step 4: '오늘 마무리' 버튼 탭
+    # withTestId('evening-finish-btn') → role=button, accessible name='오늘 마무리'
+    - action: click
+      selector:
+        role: button
+        name: '오늘 마무리'
+
+    # Step 5: POST /rituals/evening 응답 대기
+    - action: wait_for
+      condition: 'response:POST /rituals/evening'
+      timeout_ms: 10000
+
+    # Step 6: 네트워크 검증
+    - action: assert_network
+      request: POST /rituals/evening
+      expect_status: 200
+      expect_body:
+        promise_kept: true
+
+    # Step 7: 콘솔 에러 0건 확인
+    - action: assert_console
+      level: error
+      count: 0
+
+# ─── 화면이 호출하는 엔드포인트 (라우팅맵 자동 참조용) ──────────
+screen_targets:
+  - calls:
+      - POST /rituals/evening
+      - GET /rituals/today

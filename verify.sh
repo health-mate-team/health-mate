@@ -24,7 +24,7 @@ check_file() {
 check_file "app/pubspec.yaml"
 check_file "app/lib/main.dart"
 check_file "app/lib/app.dart"
-check_file "app/lib/core/router/app_router.dart"
+check_file "app/lib/routing/app_router.dart"
 check_file "app/lib/core/theme/app_theme.dart"
 check_file "backend/src/main.ts"
 check_file "backend/src/app.module.ts"
@@ -97,7 +97,7 @@ echo "▶ [6] Feature 디렉토리 구조"
 
 REQUIRED_DIRS=(
   "app/lib/core/di"
-  "app/lib/core/router"
+  "app/lib/routing"
   "app/lib/core/theme"
   "app/lib/features/auth"
   "app/lib/features/dashboard"
@@ -116,6 +116,16 @@ REQUIRED_DIRS=(
 for dir in "${REQUIRED_DIRS[@]}"; do
   [ -d "$dir" ] && ok "dir: $dir" || fail "Missing dir: $dir"
 done
+
+# ─── 7. Backend Jest 단위테스트 ──────────────────────
+echo ""
+echo "▶ [7] Backend Jest 단위테스트"
+
+if command -v node &>/dev/null && [ -f "backend/package.json" ]; then
+  (cd backend && npx jest --passWithNoTests 2>&1) && ok "Jest 단위테스트 PASS" || fail "Jest 단위테스트 FAIL"
+else
+  fail "Node.js 미설치 또는 backend/package.json 없음"
+fi
 
 # ─── 결과 ───────────────────────────────────────────
 echo ""

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:health_mate/core/di/providers.dart';
 import 'package:health_mate/features/action/presentation/walk_action_page.dart';
 import 'package:health_mate/features/action/presentation/water_action_page.dart';
 import 'package:health_mate/features/cycle/presentation/pages/cycle_calendar_page.dart';
@@ -13,15 +14,30 @@ import 'package:health_mate/features/evening_ritual/presentation/evening_ritual_
 import 'package:health_mate/features/home/presentation/home_character_page.dart';
 import 'package:health_mate/features/morning_ritual/presentation/morning_mood_page.dart';
 import 'package:health_mate/features/morning_ritual/presentation/morning_promise_page.dart';
+import 'package:health_mate/features/nutrition/presentation/nutrition_page.dart';
 import 'package:health_mate/features/onboarding/presentation/onboarding_goal_page.dart';
 import 'package:health_mate/features/onboarding/presentation/onboarding_meet_moa_page.dart';
 import 'package:health_mate/features/onboarding/presentation/onboarding_name_page.dart';
 import 'package:health_mate/features/onboarding/presentation/onboarding_welcome_page.dart';
 import 'package:health_mate/features/splash/presentation/splash_page.dart';
+import 'package:health_mate/features/workout/presentation/workout_page.dart';
+
+bool _isPublicRoute(String path) {
+  return path == '/splash' ||
+      path == '/login' ||
+      path.startsWith('/onboarding/');
+}
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
+    redirect: (context, state) async {
+      final path = state.uri.path;
+      if (_isPublicRoute(path)) return null;
+      final token = await ref.read(tokenStorageProvider).getAccessToken();
+      if (token == null) return '/onboarding/welcome';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/splash',
@@ -95,6 +111,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/moment/evolution',
         builder: (context, state) => const EvolutionPage(),
+      ),
+      GoRoute(
+        path: '/action/workout',
+        builder: (context, state) => const WorkoutPage(),
+      ),
+      GoRoute(
+        path: '/nutrition',
+        builder: (context, state) => const NutritionPage(),
       ),
       GoRoute(
         path: '/login',

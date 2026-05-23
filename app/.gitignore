@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android 로컬 빌드 산출물 (팀원 충돌 방지 — 설정 파일은 추적 유지)
+/android/.gradle/
+/android/build/
+/android/app/.cxx/
+/android/captures/
+/android/local.properties

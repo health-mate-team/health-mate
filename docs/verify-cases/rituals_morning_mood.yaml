@@ -1,0 +1,88 @@
+# 케이스 카탈로그 — POST /rituals/morning/mood
+# 명세: docs/API_SPEC.md#4.5 (Rituals — 아침/저녁 의식)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["POST /rituals/morning/mood"]
+
+schema_version: 1
+target: endpoint:POST /rituals/morning/mood
+spec_section: docs/API_SPEC.md#4.5
+phase: p1
+feature: rituals
+
+storyboard:
+  summary: |
+    사용자가 아침 기분(1~5 정수)을 기록한다.
+    성공 시 XP +10, recommended_promise(문자열), mood, total_xp를 반환한다.
+    같은 날 두 번 호출하면 400, 범위를 벗어난 mood(0 또는 6+)도 400을 반환한다.
+  steps:
+    - 사전조건: 온보딩 완료, 오늘 기분 미기록
+    - '사용자 액션: POST /rituals/morning/mood { mood: 1~5 }'
+    - '기대 결과: 200 + data.{ mood, xp_earned=10, recommended_promise, total_xp }'
+  branches:
+    - 정상 기분 기록(mood=4) → 200 + xp_earned=10 + recommended_promise(string)
+    - 같은 날 중복 기록 → 400 Bad Request
+    - 범위 초과(mood=0) → 400 Bad Request
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: onboarding_complete#happy
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 기분 기록 ──────────────────────────────
+  - id: happy
+    name: mood=4 기록 → 200 + xp_earned=10 + recommended_promise
+    request:
+      method: POST
+      path: /rituals/morning/mood
+      body:
+        mood: 4
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [mood, xp_earned, recommended_promise, total_xp]
+        properties:
+          mood:                { type: integer, const: 4 }
+          xp_earned:           { type: integer, const: 10 }
+          recommended_promise: { type: string, minLength: 1 }
+          total_xp:            { type: integer, minimum: 10 }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: [recommended_promise, total_xp]   # 추천 문장·누적 XP는 가변
+
+  # ── 오류: 같은 날 중복 기록 ───────────────────────
+  - id: error_duplicate
+    name: 같은 날 중복 기분 기록 → 400 Bad Request
+    request:
+      method: POST
+      path: /rituals/morning/mood
+      body:
+        mood: 3
+      auth: required
+    setup:
+      preconditions:
+        - case_ref: rituals_morning_mood#happy   # 이미 오늘 기분 기록됨
+    expect:
+      status: 400
+    capture_fixture: false
+
+  # ── 오류: 범위 초과(mood=0) ───────────────────────
+  - id: error_out_of_range
+    name: mood=0 (범위 외) → 400 Bad Request
+    request:
+      method: POST
+      path: /rituals/morning/mood
+      body:
+        mood: 0
+      auth: required
+    expect:
+      status: 400
+    capture_fixture: false

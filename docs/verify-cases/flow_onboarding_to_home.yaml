@@ -1,0 +1,77 @@
+# 케이스 카탈로그 — Flow: 온보딩 → 홈 진입
+# 명세: docs/verify-feature-spec.md (v0.2) §2.1 flow 정규화
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ flows["onboarding_to_home"]
+
+schema_version: 1
+target: flow:onboarding_to_home
+spec_section: docs/verify-feature-spec.md#flows
+phase: p0
+feature: [auth, onboarding, stats]
+
+storyboard:
+  summary: |
+    신규 사용자가 게스트 가입 → 온보딩 완료 → 홈 화면 진입하는 전체 흐름.
+    각 단계의 API 호출 순서와 응답이 연결되어 올바른 상태로 홈 데이터를 로드해야 한다.
+  steps:
+    - 사용자 액션: 이름 입력 화면 → 게스트 이메일 자동 생성 + POST /auth/register
+    - 사용자 액션: 목표 선택 화면 → goalType SharedPreferences 저장
+    - 사용자 액션: 모아 만나기 → POST /onboarding/complete
+    - 앱 라우팅: /home 진입 → GET /stats/today 호출
+    - 기대 결과: 홈 화면에 initial_stats(energy/hydration/rest=50, xp=0, level=1) 표시
+  branches:
+    - 정상 흐름 → 회원가입 201 → 온보딩 200 → stats 200 (initial)
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh   # flow 내부 shared — 단계 간 동일 사용자
+
+# ──────────────────────────────────────────────────────
+# 스텝 (순서 중요 — 의존성 체인)
+# ──────────────────────────────────────────────────────
+steps:
+  - step: 1_register
+    description: 게스트 가입
+    case_ref: auth_register#happy
+
+  - step: 2_onboarding
+    description: 온보딩 완료
+    case_ref: onboarding_complete#happy
+
+  - step: 3_home_stats
+    description: 홈 진입 시 스탯 조회
+    request:
+      method: GET
+      path: /stats/today
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [user, stats, cycle, today_ritual]
+        properties:
+          stats:
+            type: object
+            required: [total_xp, level, streak]
+            properties:
+              total_xp: { type: integer, const: 0 }
+              level:    { type: integer, const: 1 }
+              streak:   { type: integer, const: 0 }
+            additionalProperties: false
+          today_ritual:
+            type: object
+            required: [morning_mood, evening_completed]
+            properties:
+              morning_mood:      { type: "null" }
+              evening_completed: { type: boolean, const: false }
+            additionalProperties: false
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask:
+      - user
+      - cycle
+      - stats.energy_score
+      - stats.hydration_score
+      - stats.mood_score
+      - stats.rest_score

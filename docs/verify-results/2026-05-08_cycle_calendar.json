@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:46:10.001Z",
+  "target": "endpoint:GET /cycle/calendar",
+  "git_head": "27025ed",
+  "stages": {
+    "dynamic": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "이번 달 달력 조회 → 200 + days 배열",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401 Unauthorized",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}
