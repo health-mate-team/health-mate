@@ -87,3 +87,4 @@ docker-compose.sandbox.yml
 
 # ─── 루트 레벨 임시 스크린샷 ──────────────────────
 /*.png
+.claude/worktrees/
