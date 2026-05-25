@@ -155,9 +155,51 @@ flutter run
 
 ### 검증 스크립트
 
+#### 1. 구조·빌드 정적 검증
+
 ```bash
 bash verify.sh
 ```
+
+#### 2. 엔드포인트 단위 검증 (SQLite in-memory, Docker 불필요)
+
+```bash
+cd backend
+
+# 단일 target 검증
+npx ts-node --project scripts/tsconfig.json \
+  scripts/run-cases.ts --target auth_register --stages unit,contract
+
+# CI 모드 (FAIL 시 exit 1)
+npx ts-node --project scripts/tsconfig.json \
+  scripts/run-cases.ts --target auth_register --stages unit,contract --ci
+```
+
+카탈로그 목록: `docs/verify-cases/*.yaml` (endpoint·flow·screen 타입)
+
+#### 3. 회귀 감지 (보고서 간 diff)
+
+```bash
+cd backend
+
+# 직전 보고서와 비교
+npx ts-node --project scripts/tsconfig.json scripts/diff-results.ts
+
+# CI 모드 (회귀 존재 시 exit 1)
+npx ts-node --project scripts/tsconfig.json scripts/diff-results.ts --ci
+
+# 특정 target만 비교
+npx ts-node --project scripts/tsconfig.json \
+  scripts/diff-results.ts --target auth_register
+```
+
+보고서 위치: `docs/verify-results/{날짜}_{target}.json`
+
+#### 4. GitHub Actions CI
+
+PR 생성 시 자동 실행 (`.github/workflows/verify.yml`):
+- `run-cases` job: 9개 endpoint 순차 검증 (unit + contract)
+- `diff-check` job: 직전 보고서 대비 회귀 감지
 
 ---
 

@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/action/domain/actions_provider.dart';
 import 'package:health_mate/features/action/presentation/water_action_result.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
 /// 명세: [docs/design/owner-mock-develop/09_action_water.json] — 시트형 레이아웃을 풀스크린에 맞춤.
-class WaterActionPage extends StatefulWidget {
+class WaterActionPage extends ConsumerStatefulWidget {
   const WaterActionPage({super.key});
 
   @override
-  State<WaterActionPage> createState() => _WaterActionPageState();
+  ConsumerState<WaterActionPage> createState() => _WaterActionPageState();
 }
 
-class _WaterActionPageState extends State<WaterActionPage> {
-  int _sessionAdded = 0;
-  int _cupsBeforeSession = 0;
+class _WaterActionPageState extends ConsumerState<WaterActionPage> {
   bool _justDrank = false;
 
   @override
   void initState() {
     super.initState();
-    // TODO(offline): SharedPreferences로 일일 잔 수 복원 시 _cupsBeforeSession에 반영
   }
 
-  int get _displayCups =>
-      (_cupsBeforeSession + _sessionAdded).clamp(0, 8);
+  int get _serverCups =>
+      ref.watch(waterTodayProvider).valueOrNull?.cupsTotal ?? 0;
+
+  int get _displayCups => _serverCups.clamp(0, 8);
 
   String _feedbackText() {
     final n = _displayCups;
@@ -48,12 +49,14 @@ class _WaterActionPageState extends State<WaterActionPage> {
 
   void _addCup() {
     if (_displayCups >= 8) return;
-    setState(() => _sessionAdded++);
     _afterDrinkPulse();
+    // provider의 낙관적 업데이트가 cupsTotal +1을 즉시 반영하므로 setState 불필요
+    ref.read(waterTodayProvider.notifier).addCup().ignore();
   }
 
   void _close() {
-    context.pop(WaterActionResult(glassesAdded: _sessionAdded));
+    // 세션 카운터 대신 서버 기준 값을 사용하므로 0 전달 (호출부에서 서버 값 직접 조회)
+    context.pop(const WaterActionResult(glassesAdded: 0));
   }
 
   @override

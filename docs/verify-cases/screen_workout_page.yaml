@@ -1,0 +1,111 @@
+# 화면 단위 카탈로그 — workout_page UI 시나리오
+# 명세: docs/API_SPEC.md#4.9 (GET /workout/recommend, POST /workout/complete, /skip)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 실행: npx ts-node --project scripts/tsconfig.json scripts/run-ui-scenario.ts \
+#         --target screen_workout_page [--base-url http://localhost:3000]
+
+schema_version: 1
+target: 'screen:workout_page'
+spec_section: docs/API_SPEC.md#4.9
+phase: p3
+feature: workout
+
+storyboard:
+  summary: |
+    로그인한 사용자가 운동 추천 화면에 진입하면 사이클 단계 기반 운동이 추천된다.
+    '운동 완료' 탭 시 POST /workout/complete 호출 → 홈으로 이동.
+    '건너뛰기' 탭 시 POST /workout/skip 호출 → 홈으로 이동.
+  steps:
+    - '사전조건: 로그인(온보딩 완료) 상태'
+    - '화면 진입: /action/workout 라우트 이동'
+    - 'GET /workout/recommend 응답 대기'
+    - '운동 제목·강도·단계 텍스트 렌더링 확인'
+    - '"운동 완료" 버튼 탭 → POST /workout/complete 호출 → 홈 이동'
+    - '콘솔 에러 0건 확인'
+  branches:
+    - 운동 완료 흐름 → 200 + 홈 이동
+    - 건너뛰기 흐름 → 200 + 홈 이동
+
+# ─── Flutter Web Playwright 주의사항 ────────────────────────────
+# - Flutter Web 3.41 hash routing: URL = http://localhost:3000/#/action/workout
+# - AppBar title → role=heading
+# - FilledButton('운동 완료') → role=button, name='운동 완료'
+# - OutlinedButton('건너뛰기') → role=button, name='건너뛰기'
+# - 데이터 로딩 중 CircularProgressIndicator 표시 → wait_for 필수
+
+# ─── DYNAMIC Stage: UI 시나리오 ──────────────────────────────────
+dynamic:
+  ui_scenario:
+    # Step 0: 화면 진입
+    - action: navigate
+      to: /action/workout
+
+    # Step 1: GET /workout/recommend 응답 대기 (로딩 완료 확인)
+    - action: wait_for
+      condition: 'response:GET /workout/recommend'
+      timeout_ms: 10000
+
+    # Step 2: 로딩 완료 후 스냅샷
+    - action: snapshot
+      label: workout_loaded
+
+    # Step 3: AppBar 제목 렌더링 확인 ('오늘의 운동')
+    - action: assert_network
+      request: GET /workout/recommend
+      expect_status: 200
+
+    # Step 4: '운동 완료' 버튼 클릭
+    - action: click
+      selector:
+        role: button
+        name: '운동 완료'
+
+    # Step 5: POST /workout/complete 응답 대기
+    - action: wait_for
+      condition: 'response:POST /workout/complete'
+      timeout_ms: 10000
+
+    # Step 6: 완료 네트워크 검증
+    - action: assert_network
+      request: POST /workout/complete
+      expect_status: 200
+
+    # Step 7: 콘솔 에러 0건 확인
+    - action: assert_console
+      level: error
+      count: 0
+
+# ─── 건너뛰기 시나리오 (별도 실행) ──────────────────────────────
+  ui_scenario_skip:
+    - action: navigate
+      to: /action/workout
+
+    - action: wait_for
+      condition: 'response:GET /workout/recommend'
+      timeout_ms: 10000
+
+    - action: snapshot
+      label: workout_loaded_for_skip
+
+    - action: click
+      selector:
+        role: button
+        name: '건너뛰기'
+
+    - action: wait_for
+      condition: 'response:POST /workout/skip'
+      timeout_ms: 10000
+
+    - action: assert_network
+      request: POST /workout/skip
+      expect_status: 200
+
+    - action: assert_console
+      level: error
+      count: 0
+
+screen_targets:
+  - calls:
+      - GET /workout/recommend
+      - POST /workout/complete
+      - POST /workout/skip

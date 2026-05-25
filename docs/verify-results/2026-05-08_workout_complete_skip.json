@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T14:58:28.461Z",
+  "target": "endpoint:POST /workout/complete",
+  "git_head": "c1aa982",
+  "stages": {
+    "unit": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_complete",
+          "caseName": "운동 완료 → 200 + xp_earned=30",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/health-mate/.verify-cache/workout_complete_skip/happy_complete.json"
+        },
+        {
+          "caseId": "happy_skip",
+          "caseName": "운동 건너뛰기 → 200 + skipped=true",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_complete",
+          "caseName": "운동 완료 → 200 + xp_earned=30",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy_complete",
+          "caseName": "운동 완료 → 200 + xp_earned=30",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "happy_skip",
+          "caseName": "운동 건너뛰기 → 200 + skipped=true",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_unauth",
+          "caseName": "토큰 없음 → 401",
+          "pass": true,
+          "status": 401,
+          "expectedStatus": 401,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

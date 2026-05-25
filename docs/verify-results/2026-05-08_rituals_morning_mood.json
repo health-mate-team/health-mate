@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:47:24.136Z",
+  "target": "endpoint:POST /rituals/morning/mood",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "mood=4 기록 → 200 + xp_earned=10 + recommended_promise",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/rituals_morning_mood/happy.json"
+        },
+        {
+          "caseId": "error_duplicate",
+          "caseName": "같은 날 중복 기분 기록 → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_out_of_range",
+          "caseName": "mood=0 (범위 외) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "mood=4 기록 → 200 + xp_earned=10 + recommended_promise",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "mood=4 기록 → 200 + xp_earned=10 + recommended_promise",
+          "pass": true,
+          "status": 200,
+          "expectedStatus": 200,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_duplicate",
+          "caseName": "같은 날 중복 기분 기록 → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_out_of_range",
+          "caseName": "mood=0 (범위 외) → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,69 @@
+# 케이스 카탈로그 — GET /stats/history
+# 명세: docs/API_SPEC.md#4.7 (Stats — 스탯 & 대시보드)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+
+schema_version: 1
+target: endpoint:GET /stats/history
+spec_section: docs/API_SPEC.md#4.7
+phase: p2
+feature: stats
+
+storyboard:
+  summary: |
+    로그인한 사용자가 최근 N일(기본 30일) 일별 스탯 히스토리를 조회한다.
+    데이터 없는 날은 배열에 포함되지 않는다.
+    days 파라미터로 1~90 범위 지정 가능.
+  steps:
+    - 사전조건: 로그인 완료
+    - 사용자 액션: GET /stats/history?days=7
+    - 기대 결과: period_days=7, daily_records 배열 반환
+  branches:
+    - 정상 조회 → 200 + period_days + daily_records
+    - 토큰 없음 → 401
+
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy
+
+cases:
+  - id: happy
+    name: 7일 히스토리 조회 → 200
+    request:
+      method: GET
+      path: /stats/history
+      auth: required
+      query:
+        days: "7"
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [period_days, daily_records]
+        properties:
+          period_days:   { type: integer, const: 7 }
+          daily_records:
+            type: array
+            items:
+              type: object
+              required: [date, energy, hydration, rest, morning_completed, evening_completed]
+              properties:
+                date:              { type: string }
+                energy:            { type: integer }
+                hydration:         { type: integer }
+                rest:              { type: integer }
+                morning_completed: { type: boolean }
+                evening_completed: { type: boolean }
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: []
+
+  - id: error_unauth
+    name: 토큰 없음 → 401
+    request:
+      method: GET
+      path: /stats/history
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

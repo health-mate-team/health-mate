@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "ran_at": "2026-05-08T10:38:21.885Z",
+  "target": "endpoint:POST /auth/register",
+  "git_head": "27025ed",
+  "stages": {
+    "unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "신규 이메일 가입 → 201 + access_token",
+          "pass": true,
+          "status": 201,
+          "expectedStatus": 201,
+          "schemaErrors": [],
+          "fixture": "/mnt/d/workspace/.verify-cache/auth_register/happy.json"
+        },
+        {
+          "caseId": "error_dup_email",
+          "caseName": "중복 이메일 재가입 → 409 Conflict",
+          "pass": true,
+          "status": 409,
+          "expectedStatus": 409,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_invalid_email",
+          "caseName": "잘못된 이메일 형식 → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_short_pw",
+          "caseName": "비밀번호 8자 미만 → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        }
+      ]
+    },
+    "contract": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "신규 이메일 가입 → 201 + access_token",
+          "pass": true
+        }
+      ]
+    },
+    "dynamic": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "cases": [
+        {
+          "caseId": "happy",
+          "caseName": "신규 이메일 가입 → 201 + access_token",
+          "pass": true,
+          "status": 201,
+          "expectedStatus": 201,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_dup_email",
+          "caseName": "중복 이메일 재가입 → 409 Conflict",
+          "pass": true,
+          "status": 409,
+          "expectedStatus": 409,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_invalid_email",
+          "caseName": "잘못된 이메일 형식 → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        },
+        {
+          "caseId": "error_short_pw",
+          "caseName": "비밀번호 8자 미만 → 400 Bad Request",
+          "pass": true,
+          "status": 400,
+          "expectedStatus": 400,
+          "schemaErrors": []
+        }
+      ]
+    }
+  }
+}

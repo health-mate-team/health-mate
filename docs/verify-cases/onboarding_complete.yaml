@@ -1,0 +1,113 @@
+# 케이스 카탈로그 — POST /onboarding/complete
+# 명세: docs/API_SPEC.md#4.3 (Onboarding — 온보딩)
+# 상위 명세: docs/verify-feature-spec.md (v0.2)
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ endpoints["POST /onboarding/complete"]
+
+schema_version: 1
+target: endpoint:POST /onboarding/complete
+spec_section: docs/API_SPEC.md#4.3
+phase: p0
+feature: onboarding
+
+storyboard:
+  summary: |
+    신규 사용자가 온보딩 정보(이름·목표·생리 주기 정보)를 제출하여 온보딩을 완료한다.
+    성공 시 initial_stats(초기 스탯 7종)와 current_phase(생리 주기 단계)를 반환한다.
+    잘못된 goal_type이면 400, 인증 없으면 401을 반환한다.
+  steps:
+    - 사전조건: 가입 완료 상태 (access_token 보유, is_onboarding_completed=false)
+    - 사용자 액션: POST /onboarding/complete { name, goal_type, last_period_start_date, ... }
+    - 기대 결과: 200 + data.{ initial_stats, current_phase }
+  branches:
+    - 정상 온보딩 → 200 + initial_stats + current_phase (menstrual/follicular/ovulation/luteal 중 하나)
+    - 잘못된 goal_type (폐기된 'weight') → 400
+    - 토큰 없음 → 401
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: auth_register#happy   # 가입 완료 → access_token 획득
+
+# ──────────────────────────────────────────────────────
+# 케이스
+# ──────────────────────────────────────────────────────
+cases:
+  # ── Happy: 온보딩 완료 ────────────────────────────
+  - id: happy
+    name: 정상 온보딩 완료 → 200 + initial_stats + current_phase
+    request:
+      method: POST
+      path: /onboarding/complete
+      body:
+        name: "테스터"
+        goal_type: "energy"
+        last_period_start_date: "2026-04-28"
+        average_cycle_length: 28
+        average_period_length: 5
+        is_irregular: false
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [initial_stats, current_phase]
+        properties:
+          current_phase:
+            type: string
+            enum: [menstrual, follicular, ovulation, luteal]
+          initial_stats:
+            type: object
+            required: [energy_score, hydration_score, mood_score, water_cups,
+                       rest_score, total_xp, level, streak]
+            properties:
+              energy_score:    { type: integer, const: 50 }
+              hydration_score: { type: integer, const: 50 }
+              mood_score:      { type: integer, const: 50 }
+              rest_score:      { type: integer, const: 50 }
+              water_cups:      { type: integer, const: 0 }
+              total_xp:        { type: integer, const: 0 }
+              level:           { type: integer, const: 1 }
+              streak:          { type: integer, const: 0 }
+            additionalProperties: false
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask: []   # 결정적 정수만 — 마스킹 불필요
+
+  # ── 오류: 폐기된 goal_type ('weight') ────────────
+  - id: error_bad_goal_type
+    name: 폐기된 goal_type(weight) → 400 Bad Request
+    request:
+      method: POST
+      path: /onboarding/complete
+      body:
+        name: "테스터"
+        goal_type: "weight"
+        last_period_start_date: "2026-04-28"
+        average_cycle_length: 28
+        average_period_length: 5
+        is_irregular: false
+      auth: required
+    expect:
+      status: 400
+    capture_fixture: false
+
+  # ── 경계: 토큰 없음 ───────────────────────────────
+  - id: error_unauth
+    name: 토큰 없음 → 401 Unauthorized
+    request:
+      method: POST
+      path: /onboarding/complete
+      body:
+        name: "테스터"
+        goal_type: "energy"
+        last_period_start_date: "2026-04-28"
+        average_cycle_length: 28
+        average_period_length: 5
+        is_irregular: false
+      auth: none
+    expect:
+      status: 401
+    capture_fixture: false

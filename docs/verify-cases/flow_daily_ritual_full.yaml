@@ -1,0 +1,87 @@
+# 케이스 카탈로그 — Flow: 하루 의식 풀 사이클
+# 명세: docs/verify-feature-spec.md (v0.2) §2.1 flow 정규화
+# 라우팅: docs/verify-cases/_routing-map.yaml ─ flows["daily_ritual_full"]
+
+schema_version: 1
+target: flow:daily_ritual_full
+spec_section: docs/verify-feature-spec.md#flows
+phase: p1
+feature: [rituals, stats]
+
+storyboard:
+  summary: |
+    온보딩 완료 사용자가 아침 기분 기록 → 약속 확정 → 저녁 의식 완료 후
+    홈 화면에서 누적 XP 70(mood10+evening10+kept50)과 streak≥1을 확인하는 하루 의식 전체 흐름.
+  steps:
+    - 'GET /rituals/today → 초기 상태 확인 (morning_mood=null)'
+    - 'POST /rituals/morning/mood { mood: 4 } → XP +10'
+    - 'POST /rituals/morning/promise { promise: "오늘 물 8잔 마시기" }'
+    - 'POST /rituals/evening { promise_kept: true } → XP +60 누적'
+    - 'GET /stats/today → total_xp=70, streak=1, evening_completed=true'
+  branches:
+    - 전체 완료(약속 이행) → total_xp=70, streak≥1
+
+# ──────────────────────────────────────────────────────
+# 사전조건
+# ──────────────────────────────────────────────────────
+setup:
+  user: fresh
+  preconditions:
+    - case_ref: onboarding_complete#happy
+
+# ──────────────────────────────────────────────────────
+# 스텝 (순서 중요)
+# ──────────────────────────────────────────────────────
+steps:
+  - step: 1_rituals_init
+    description: 오늘 의식 초기 상태 확인
+    case_ref: rituals_today#init_state
+
+  - step: 2_morning_mood
+    description: 아침 기분 기록 (XP +10)
+    case_ref: rituals_morning_mood#happy
+
+  - step: 3_morning_promise
+    description: 약속 확정
+    case_ref: rituals_morning_promise#happy
+
+  - step: 4_evening_kept
+    description: 저녁 의식 — 약속 이행 (XP +50 추가)
+    case_ref: rituals_evening#happy_kept
+
+  - step: 5_stats_verify
+    description: 홈 스탯 최종 검증
+    request:
+      method: GET
+      path: /stats/today
+      auth: required
+    expect:
+      status: 200
+      body_schema:
+        type: object
+        required: [stats, today_ritual]
+        properties:
+          stats:
+            type: object
+            required: [total_xp, streak]
+            properties:
+              total_xp: { type: integer, const: 70 }
+              streak:   { type: integer, minimum: 1 }
+            additionalProperties: false
+          today_ritual:
+            type: object
+            required: [morning_mood, evening_completed, promise_kept, xp_earned_today]
+            properties:
+              morning_mood:      { type: integer, const: 4 }
+              evening_completed: { type: boolean, const: true }
+              promise_kept:      { type: boolean, const: true }
+              xp_earned_today:   { type: integer, const: 70 }
+            additionalProperties: false
+        additionalProperties: false
+    capture_fixture: true
+    fixture_mask:
+      - stats.energy_score
+      - stats.hydration_score
+      - stats.mood_score
+      - stats.rest_score
+      - stats.level

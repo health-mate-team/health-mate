@@ -1,31 +1,29 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:health_mate/core/theme/owner/owner_design_system.dart';
+import 'package:health_mate/features/action/data/actions_repository.dart';
+import 'package:health_mate/features/action/data/dto/action_dto.dart';
 import 'package:health_mate/shared/widgets/owner/owner_widgets.dart';
 
 /// 명세: [docs/design/owner-mock-develop/10_action_walk.json]
 enum _WalkUiPhase { beforeStart, inProgress, completed }
 
-int _xpForWalkSeconds(int seconds) {
-  if (seconds < 300) return 5;
-  if (seconds < 900) return 10;
-  if (seconds < 1800) return 25;
-  return 40;
-}
-
-class WalkActionPage extends StatefulWidget {
+class WalkActionPage extends ConsumerStatefulWidget {
   const WalkActionPage({super.key});
 
   @override
-  State<WalkActionPage> createState() => _WalkActionPageState();
+  ConsumerState<WalkActionPage> createState() => _WalkActionPageState();
 }
 
-class _WalkActionPageState extends State<WalkActionPage> {
+class _WalkActionPageState extends ConsumerState<WalkActionPage> {
   _WalkUiPhase _phase = _WalkUiPhase.beforeStart;
   int _seconds = 0;
   Timer? _timer;
+  String? _walkSessionId;
+  DateTime? _startedAt;
 
   @override
   void dispose() {
@@ -33,20 +31,45 @@ class _WalkActionPageState extends State<WalkActionPage> {
     super.dispose();
   }
 
-  void _start() {
+  Future<void> _start() async {
+    final now = DateTime.now();
     setState(() {
       _phase = _WalkUiPhase.inProgress;
       _seconds = 0;
+      _startedAt = now;
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _seconds++);
     });
+    try {
+      final repo = ref.read(actionsRepositoryProvider);
+      final resp = await repo.startWalk(
+        WalkStartRequest(startedAt: now.toUtc().toIso8601String()),
+      );
+      _walkSessionId = resp.walkSessionId;
+    } catch (_) {
+      // 네트워크 실패 시 로컬 타이머만 동작
+    }
   }
 
-  void _endWalk() {
+  Future<void> _endWalk() async {
     _timer?.cancel();
     setState(() => _phase = _WalkUiPhase.completed);
+    if (_walkSessionId != null && _startedAt != null) {
+      try {
+        final repo = ref.read(actionsRepositoryProvider);
+        await repo.completeWalk(WalkCompleteRequest(
+          walkSessionId: _walkSessionId!,
+          endedAt: DateTime.now().toUtc().toIso8601String(),
+          durationMinutes: _seconds ~/ 60,
+          stepsCount: _seconds * 2,
+          distanceKm: (_seconds * 2 * 0.0007),
+        ));
+      } catch (_) {
+        // 완료 실패 시 UI만 전환
+      }
+    }
   }
 
   void _confirmExit() {
@@ -59,10 +82,8 @@ class _WalkActionPageState extends State<WalkActionPage> {
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  int get _stepsStub => _seconds * 2;
-
-  String get _distanceKmStub =>
-      (_stepsStub * 0.0007).toStringAsFixed(2);
+  int get _steps => _seconds * 2;
+  String get _distanceKmLabel => (_steps * 0.0007).toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
@@ -90,15 +111,15 @@ class _WalkActionPageState extends State<WalkActionPage> {
           _WalkUiPhase.inProgress => _InProgress(
               key: const ValueKey('during'),
               timeLabel: _timeLabel,
-              steps: _stepsStub,
-              distanceKm: _distanceKmStub,
+              steps: _steps,
+              distanceKm: _distanceKmLabel,
               onEnd: _endWalk,
             ),
           _WalkUiPhase.completed => _Completed(
               key: const ValueKey('done'),
               timeLabel: _timeLabel,
-              steps: _stepsStub,
-              xp: _xpForWalkSeconds(_seconds),
+              steps: _steps,
+              xp: 30,
               onOk: _confirmExit,
             ),
         },
