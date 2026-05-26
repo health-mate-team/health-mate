@@ -33,7 +33,8 @@ export class AuthService {
     await this.userRepo.save(user);
 
     const access_token = this.issueAccessToken(user);
-    return { access_token };
+    const refresh_token = this.issueRefreshToken(user);
+    return { access_token, refresh_token };
   }
 
   async login(dto: LoginDto) {
@@ -46,8 +47,10 @@ export class AuthService {
       throw new UnauthorizedException('이메일 또는 비밀번호가 틀렸습니다');
 
     const access_token = this.issueAccessToken(user);
+    const refresh_token = this.issueRefreshToken(user);
     return {
       access_token,
+      refresh_token,
       is_onboarding_completed: user.isOnboardingCompleted,
     };
   }
@@ -55,9 +58,11 @@ export class AuthService {
   async refresh(refreshToken: string) {
     try {
       const payload = this.jwtService.verify<JwtPayload>(refreshToken);
-      const user = await this.userRepo.findOneOrFail({
-        where: { id: payload.sub },
-      });
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('리프레시 토큰이 아닙니다');
+      }
+      const user = await this.userRepo.findOne({ where: { id: payload.sub } });
+      if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
       const access_token = this.issueAccessToken(user);
       return { access_token };
     } catch {
@@ -66,7 +71,12 @@ export class AuthService {
   }
 
   private issueAccessToken(user: User): string {
-    const payload: JwtPayload = { sub: user.id, email: user.email };
-    return this.jwtService.sign(payload);
+    const payload: JwtPayload = { sub: user.id, email: user.email, type: 'access' };
+    return this.jwtService.sign(payload, { expiresIn: '7d' });
+  }
+
+  private issueRefreshToken(user: User): string {
+    const payload: JwtPayload = { sub: user.id, email: user.email, type: 'refresh' };
+    return this.jwtService.sign(payload, { expiresIn: '30d' });
   }
 }
