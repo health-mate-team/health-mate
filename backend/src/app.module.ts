@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ActionsModule } from './actions/actions.module';
@@ -18,7 +19,17 @@ import { WorkoutModule } from './workout/workout.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: Joi.object({
+        JWT_SECRET: Joi.string().min(16).required(),
+        DB_PASSWORD: Joi.string().required(),
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test')
+          .default('production'),
+      }),
+      validationOptions: { allowUnknown: true },
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
@@ -26,7 +37,7 @@ import { WorkoutModule } from './workout/workout.module';
         host: config.get('DB_HOST', 'localhost'),
         port: config.get<number>('DB_PORT', 5432),
         username: config.get('DB_USER', 'healthmate'),
-        password: config.get('DB_PASSWORD', 'healthmate123'),
+        password: config.get<string>('DB_PASSWORD'),
         database: config.get('DB_NAME', 'health_mate'),
         autoLoadEntities: true,
         synchronize: config.get('NODE_ENV') !== 'production',
