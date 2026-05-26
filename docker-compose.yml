@@ -17,6 +17,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - backend-net
+      - ai-net
 
   redis:
     image: redis:7-alpine
@@ -28,6 +31,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - backend-net
 
   backend:
     build:
@@ -52,6 +57,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       REDIS_URL: redis://redis:6379
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
+    networks:
+      - backend-net
 
   ai-service:
     build:
@@ -65,6 +72,12 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${DB_USER:-healthmate}:${DB_PASSWORD}@db:5432/${DB_NAME:-health_mate}
+    networks:
+      - ai-net
 
 volumes:
   pgdata:
+
+networks:
+  backend-net:
+  ai-net:
