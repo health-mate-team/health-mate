@@ -60,6 +60,7 @@ health-mate/
 - **모듈 단위 개발**: 각 기능은 독립 모듈 (`auth/`, `users/`, `workout/` 등)
 - **DTO + class-validator**: 모든 요청 바디는 DTO 클래스로 검증
 - **TypeORM Entity**: DB 테이블은 Entity 클래스로 정의, `synchronize: true`는 개발 환경만
+- **마이그레이션**: 운영(`NODE_ENV=production`)은 synchronize OFF + 부팅 시 `migrationsRun`. 엔티티(컬럼/테이블)를 변경하면 반드시 로컬에서 마이그레이션을 생성·커밋한다 — 누락 시 운영 첫 호출에서 `column ... does not exist` 500. 절차: 로컬 DB 띄운 뒤 `cd backend && npm run migration:generate -- src/migrations/<설명>` → 생성 SQL 검토 → 커밋. `migration:*` 스크립트는 ts-node 기반(로컬 전용), 운영은 부팅 시 컴파일된 `dist/migrations/*.js` 자동 실행. baseline = `Baseline1779865969779`.
 
 ---
 
