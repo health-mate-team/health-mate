@@ -1,7 +1,9 @@
 import { IsDateString, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsWithinRecentRange } from '../../common/validators/recent-date.validator';
 
 export class WaterActionDto {
   @IsDateString()
+  @IsWithinRecentRange()
   @IsOptional()
   date?: string;
 

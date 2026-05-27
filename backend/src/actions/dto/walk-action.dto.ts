@@ -5,9 +5,11 @@ import {
   IsUUID,
   Min,
 } from 'class-validator';
+import { IsWithinRecentRange } from '../../common/validators/recent-date.validator';
 
 export class WalkStartDto {
   @IsDateString()
+  @IsWithinRecentRange()
   started_at: string;
 }
 
@@ -16,6 +18,7 @@ export class WalkCompleteDto {
   walk_session_id: string;
 
   @IsDateString()
+  @IsWithinRecentRange()
   ended_at: string;
 
   @IsNumber()

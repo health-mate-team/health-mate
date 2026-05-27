@@ -1,0 +1,19 @@
+version: '3.9'
+
+# 개발 환경 전용 오버라이드 — 프로덕션 배포 시 이 파일은 사용되지 않는다.
+# docker-compose up 시 자동 병합됨. 프로덕션은 docker-compose -f docker-compose.yml up 사용.
+
+services:
+  db:
+    ports:
+      - '5433:5432'
+
+  redis:
+    ports:
+      - '6380:6379'
+
+  backend:
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./backend/src:/app/src
