@@ -44,6 +44,9 @@ backend/dist-scripts/
 backend/.env
 backend/coverage/
 
+# verify-feature(run-cases) 로컬 산출물 — 커밋 금지
+docs/verify-results/
+
 # ─── Python / FastAPI ──────────────────────────────
 ai-service/__pycache__/
 ai-service/**/__pycache__/

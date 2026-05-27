@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ActionsModule } from './actions/actions.module';
@@ -44,6 +45,10 @@ import { WorkoutModule } from './workout/workout.module';
         database: config.get('DB_NAME', 'health_mate'),
         autoLoadEntities: true,
         synchronize: config.get('NODE_ENV') !== 'production',
+        // 운영(synchronize OFF)에서는 부팅 시 마이그레이션을 자동 실행해 스키마를 반영.
+        // dev/test는 synchronize가 담당하므로 비활성(테스트 하니스 회귀 방지).
+        migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+        migrationsRun: config.get('NODE_ENV') === 'production',
       }),
       inject: [ConfigService],
     }),
