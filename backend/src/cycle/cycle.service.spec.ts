@@ -53,4 +53,28 @@ describe('calculateCyclePhase', () => {
     const { phase } = calculateCyclePhase(daysAgo(6), 7);
     expect(phase).toBe('menstrual');
   });
+
+  // ── 회귀 방지: 경과/범위초과 안전 처리 (P0-1·P0-2) ──
+  it('[회귀] 한 주기(28일) 경과 → dayOfCycle 롤오버(음수/초과 없음)', () => {
+    // 30일 전 시작 → rawDay 31 → 28로 롤오버 → 3일차
+    const { phase, dayOfCycle } = calculateCyclePhase(daysAgo(30), 5, 28);
+    expect(dayOfCycle).toBe(3);
+    expect(phase).toBe('menstrual');
+  });
+
+  it('[회귀] 두 주기 이상 경과해도 dayOfCycle은 항상 1..cycleLength', () => {
+    const { dayOfCycle } = calculateCyclePhase(daysAgo(60), 5, 28);
+    expect(dayOfCycle).toBeGreaterThanOrEqual(1);
+    expect(dayOfCycle).toBeLessThanOrEqual(28);
+  });
+
+  it('[회귀] 기준일이 시작일 이전(이전 월 캘린더) → 음수 아닌 양수 dayOfCycle', () => {
+    // 오늘 시작, 기준일 5일 전 → rawDay -4 → 안전 모듈로로 양수
+    const start = daysAgo(0);
+    const ref = new Date();
+    ref.setDate(ref.getDate() - 5);
+    const { dayOfCycle } = calculateCyclePhase(start, 5, 28, ref);
+    expect(dayOfCycle).toBeGreaterThanOrEqual(1);
+    expect(dayOfCycle).toBeLessThanOrEqual(28);
+  });
 });

@@ -12,7 +12,7 @@ export enum CyclePhase {
   Luteal = 'luteal',
 }
 
-function parseLocalDate(dateStr: string): Date {
+export function parseLocalDate(dateStr: string): Date {
   const [y, m, d] = dateStr.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
@@ -21,14 +21,31 @@ export function localDateString(d = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+// JS %는 피연산자 부호를 보존하므로 음수 입력 시 음수 나머지가 나온다.
+// 항상 [0, m) 범위를 보장하는 안전 모듈로.
+function safeMod(n: number, m: number): number {
+  return ((n % m) + m) % m;
+}
+
+const DEFAULT_CYCLE_LENGTH = 28;
+
+/**
+ * 기준일(referenceDate, 기본=오늘) 시점의 사이클 내 위치를 계산한다.
+ * dayOfCycle은 averageCycleLength로 롤오버되어 항상 1..cycleLength 범위를 보장한다
+ * (한 주기 이상 경과·기준일이 시작일 이전인 경우에도 음수/범위초과 없음).
+ */
 export function calculateCyclePhase(
   lastPeriodStart: string,
   periodLength: number,
+  cycleLength: number = DEFAULT_CYCLE_LENGTH,
+  referenceDate: Date = parseLocalDate(localDateString()),
 ): { phase: CyclePhase; dayOfCycle: number } {
   const start = parseLocalDate(lastPeriodStart);
-  const today = parseLocalDate(localDateString());
-  const dayOfCycle =
-    Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const rawDay =
+    Math.floor((referenceDate.getTime() - start.getTime()) / MS_PER_DAY) + 1;
+  const dayOfCycle = safeMod(rawDay - 1, cycleLength) + 1;
 
   let phase: CyclePhase;
   if (dayOfCycle <= periodLength) phase = CyclePhase.Menstrual;
@@ -60,22 +77,25 @@ export class CycleService {
     const { phase, dayOfCycle } = calculateCyclePhase(
       cycle.lastPeriodStartDate,
       cycle.averagePeriodLength,
+      cycle.averageCycleLength,
     );
 
-    const lastPeriodStart = parseLocalDate(cycle.lastPeriodStartDate);
-    const nextPeriodDate = new Date(lastPeriodStart);
-    nextPeriodDate.setDate(nextPeriodDate.getDate() + cycle.averageCycleLength);
-
+    // 경과 일수를 주기 길이로 롤오버 → 다음 예정일은 항상 미래(1..cycleLength일).
+    const start = parseLocalDate(cycle.lastPeriodStartDate);
     const today = parseLocalDate(localDateString());
-    const daysUntilNextPeriod = Math.ceil(
-      (nextPeriodDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    const daysSince = Math.floor(
+      (today.getTime() - start.getTime()) / MS_PER_DAY,
     );
+    const daysUntilNextPeriod =
+      cycle.averageCycleLength - safeMod(daysSince, cycle.averageCycleLength);
+    const nextPeriodDate = new Date(today);
+    nextPeriodDate.setDate(nextPeriodDate.getDate() + daysUntilNextPeriod);
 
     return {
       current_phase: phase,
       day_of_cycle: dayOfCycle,
       days_until_next_period: daysUntilNextPeriod,
-      next_period_date: nextPeriodDate.toISOString().slice(0, 10),
+      next_period_date: localDateString(nextPeriodDate),
       average_cycle_length: cycle.averageCycleLength,
       average_period_length: cycle.averagePeriodLength,
       is_irregular: cycle.isIrregular,
@@ -108,23 +128,13 @@ export class CycleService {
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const start = parseLocalDate(cycle.lastPeriodStartDate);
-      const current = parseLocalDate(dateStr);
-      const dayOfCycle =
-        Math.floor(
-          (current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-        ) + 1;
-
-      let phase: CyclePhase;
-      // Normalize dayOfCycle within the cycle length
-      const normalizedDay = ((dayOfCycle - 1) % cycle.averageCycleLength) + 1;
-      if (normalizedDay <= cycle.averagePeriodLength)
-        phase = CyclePhase.Menstrual;
-      else if (normalizedDay <= 13) phase = CyclePhase.Follicular;
-      else if (normalizedDay <= 15) phase = CyclePhase.Ovulation;
-      else phase = CyclePhase.Luteal;
-
-      days.push({ date: dateStr, phase, day_of_cycle: normalizedDay });
+      const { phase, dayOfCycle } = calculateCyclePhase(
+        cycle.lastPeriodStartDate,
+        cycle.averagePeriodLength,
+        cycle.averageCycleLength,
+        parseLocalDate(dateStr),
+      );
+      days.push({ date: dateStr, phase, day_of_cycle: dayOfCycle });
     }
 
     return { year, month, days };

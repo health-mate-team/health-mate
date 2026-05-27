@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { DailyStat } from '../entities/daily-stat.entity';
 import { UserBadge } from '../entities/user-badge.entity';
 import { XpLog } from '../entities/xp-log.entity';
@@ -51,12 +51,11 @@ export class RewardsService {
     }
 
     if (!earned.has(BadgeCode.WaterGoal)) {
-      const hasWaterGoal = await this.statRepo.findOne({
-        where: { userId: user.id },
+      // 임의 행이 아니라 8잔 이상 달성한 날이 하루라도 있는지로 판정(P1-2).
+      const waterGoalDays = await this.statRepo.count({
+        where: { userId: user.id, waterCups: MoreThanOrEqual(8) },
       });
-      if (hasWaterGoal && hasWaterGoal.waterCups >= 8) {
-        toAward.push(BadgeCode.WaterGoal);
-      }
+      if (waterGoalDays > 0) toAward.push(BadgeCode.WaterGoal);
     }
 
     for (const code of toAward) {
