@@ -9,6 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsWithinRecentRange } from '../../common/validators/recent-date.validator';
 
 export class FoodItemDto {
   @IsString()
@@ -21,6 +22,7 @@ export class FoodItemDto {
 
 export class NutritionLogDto {
   @IsDateString()
+  @IsWithinRecentRange()
   @IsOptional()
   date?: string;
 

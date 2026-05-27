@@ -101,8 +101,9 @@
 
 ### Base URL
 ```
-개발: http://localhost:3000/api
-프로덕션: https://api.owner-app.io/api  (추후 결정)
+로컬 개발 (Docker):  http://localhost:3001/api
+협업/테스트 서버:    http://43.201.67.1:3001/api  (AWS EC2 서울)
+프로덕션 (향후):     https://api.healthmate.io/api  (TBD)
 ```
 
 ### 인증 헤더

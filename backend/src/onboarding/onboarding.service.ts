@@ -1,13 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DailyStat } from '../entities/daily-stat.entity';
 import { UserCycle } from '../entities/user-cycle.entity';
 import { User } from '../entities/user.entity';
-import { localDateString } from '../cycle/cycle.service';
+import { calculateCyclePhase, localDateString } from '../cycle/cycle.service';
 import { CompleteOnboardingDto } from './dto/complete-onboarding.dto';
-
-type CyclePhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal';
 
 @Injectable()
 export class OnboardingService {
@@ -21,6 +19,11 @@ export class OnboardingService {
   ) {}
 
   async complete(user: User, dto: CompleteOnboardingDto) {
+    // 재호출 시 UserCycle 중복행/500 방지(P0-3).
+    if (user.isOnboardingCompleted) {
+      throw new ConflictException('이미 온보딩을 완료했습니다');
+    }
+
     user.name = dto.name;
     user.isOnboardingCompleted = true;
     await this.userRepo.save(user);
@@ -50,9 +53,11 @@ export class OnboardingService {
     });
     await this.statRepo.save(stat);
 
-    const current_phase = this.calculatePhase(
+    // 사이클 phase 계산은 cycle.service의 공유 유틸 사용 (로컬 날짜 통일·중복 제거, P1-3).
+    const { phase: current_phase } = calculateCyclePhase(
       dto.last_period_start_date,
       dto.average_period_length,
+      dto.average_cycle_length,
     );
 
     const initial_stats = {
@@ -67,21 +72,5 @@ export class OnboardingService {
     };
 
     return { initial_stats, current_phase };
-  }
-
-  private calculatePhase(
-    lastPeriodStart: string,
-    periodLength: number,
-  ): CyclePhase {
-    const start = new Date(lastPeriodStart);
-    const today = new Date();
-    const dayOfCycle =
-      Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) +
-      1;
-
-    if (dayOfCycle <= periodLength) return 'menstrual';
-    if (dayOfCycle <= 13) return 'follicular';
-    if (dayOfCycle <= 15) return 'ovulation';
-    return 'luteal';
   }
 }

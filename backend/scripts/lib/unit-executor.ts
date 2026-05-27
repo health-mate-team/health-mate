@@ -49,6 +49,8 @@ function substituteBody(
   return JSON.parse(JSON.stringify(body, (_k, v) => {
     if (typeof v !== 'string') return v;
     if (v === '{{fresh_email}}') return email;
+    if (v === '{{now}}') return new Date().toISOString();
+    if (v === '{{today}}') return new Date().toISOString().slice(0, 10);
     const fixtureMatch = v.match(/^\{\{fixture:([^#]+)#([^.]+)\.(.+)\}\}$/);
     if (fixtureMatch) {
       const [, catalogId, caseId, fieldPath] = fixtureMatch;

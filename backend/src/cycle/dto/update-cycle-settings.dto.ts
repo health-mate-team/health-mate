@@ -1,16 +1,16 @@
 import {
   IsBoolean,
+  IsDateString,
   IsIn,
   IsInt,
   IsOptional,
-  IsString,
   Max,
   Min,
 } from 'class-validator';
 
 export class UpdateCycleSettingsDto {
   @IsOptional()
-  @IsString()
+  @IsDateString()
   last_period_start_date?: string;
 
   @IsOptional()

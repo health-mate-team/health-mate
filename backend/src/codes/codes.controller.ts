@@ -21,7 +21,13 @@ export class CodesController {
   async getByGroups(
     @Query('groups') groups: string,
   ): Promise<ApiResponse<Record<string, CodeItemDto[]>>> {
-    const groupIds = groups ? groups.split(',').map((g) => g.trim()) : [];
+    // 무제한 그룹 조회로 인한 부하 방지를 위해 최대 10개로 제한(L-2).
+    const groupIds = groups
+      ? groups
+          .split(',')
+          .map((g) => g.trim())
+          .slice(0, 10)
+      : [];
     const data = await this.codesService.getByGroups(groupIds);
     return ApiResponse.success(data);
   }

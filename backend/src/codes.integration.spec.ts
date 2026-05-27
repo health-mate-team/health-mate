@@ -15,6 +15,7 @@ import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { TokenBlacklistService } from './common/redis/token-blacklist.service';
 import { CodesController } from './codes/codes.controller';
 import { CodesService } from './codes/codes.service';
 import { Code } from './entities/code.entity';
@@ -56,6 +57,13 @@ describe('INFRA 통합 테스트 — 공통코드 (SQLite in-memory)', () => {
         CodesService,
         JwtStrategy,
         JwtAuthGuard,
+        {
+          provide: TokenBlacklistService,
+          useValue: {
+            invalidateUser: jest.fn().mockResolvedValue(undefined),
+            isInvalidated: jest.fn().mockResolvedValue(false),
+          },
+        },
       ],
     }).compile();
 

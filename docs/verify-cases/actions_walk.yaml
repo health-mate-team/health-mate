@@ -36,7 +36,7 @@ cases:
       path: /actions/walk/start
       auth: required
       body:
-        started_at: "2026-05-08T10:00:00Z"
+        started_at: "{{now}}"
     expect:
       status: 201
       body_schema:
@@ -60,7 +60,7 @@ cases:
       auth: required
       body:
         walk_session_id: "{{fixture:actions_walk#happy_start.walk_session_id}}"
-        ended_at: "2026-05-08T10:15:00Z"
+        ended_at: "{{now}}"
         duration_minutes: 15
         steps_count: 1800
         distance_km: 1.26
@@ -87,7 +87,7 @@ cases:
       auth: required
       body:
         walk_session_id: "00000000-0000-0000-0000-000000000000"
-        ended_at: "2026-05-08T10:15:00Z"
+        ended_at: "{{now}}"
         duration_minutes: 15
     expect:
       status: 404
@@ -100,7 +100,7 @@ cases:
       path: /actions/walk/start
       auth: none
       body:
-        started_at: "2026-05-08T10:00:00Z"
+        started_at: "{{now}}"
     expect:
       status: 401
     capture_fixture: false

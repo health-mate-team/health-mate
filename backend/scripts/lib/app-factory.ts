@@ -15,6 +15,7 @@ import { JwtStrategy } from '../../src/auth/strategies/jwt.strategy';
 import { ActionsController } from '../../src/actions/actions.controller';
 import { ActionsService } from '../../src/actions/actions.service';
 import { JwtAuthGuard } from '../../src/common/guards/jwt-auth.guard';
+import { TokenBlacklistService } from '../../src/common/redis/token-blacklist.service';
 import { XpService } from '../../src/common/services/xp.service';
 import { CycleController } from '../../src/cycle/cycle.controller';
 import { CycleService } from '../../src/cycle/cycle.service';
@@ -98,6 +99,14 @@ export async function createTestApp(): Promise<INestApplication> {
       NutritionService,
       JwtStrategy,
       JwtAuthGuard,
+      // Redis 미연결 테스트 하네스용 stub — 무효화 없음으로 동작.
+      {
+        provide: TokenBlacklistService,
+        useValue: {
+          invalidateUser: async (): Promise<void> => undefined,
+          isInvalidated: async (): Promise<boolean> => false,
+        },
+      },
     ],
   }).compile();
 

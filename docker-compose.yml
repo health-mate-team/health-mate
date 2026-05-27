@@ -5,11 +5,11 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     ports:
-      - '5433:5432'
+      - '127.0.0.1:5433:5432'
     environment:
       POSTGRES_DB: ${DB_NAME:-health_mate}
       POSTGRES_USER: ${DB_USER:-healthmate}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-healthmate123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -17,17 +17,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - backend-net
+      - ai-net
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - '6380:6379'
+      - '127.0.0.1:6380:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - backend-net
 
   backend:
     build:
@@ -42,18 +47,18 @@ services:
       redis:
         condition: service_healthy
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${DB_USER:-healthmate}
-      DB_PASSWORD: ${DB_PASSWORD:-healthmate123}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME:-health_mate}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      JWT_SECRET: ${JWT_SECRET}
       REDIS_URL: redis://redis:6379
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
-    volumes:
-      - ./backend/src:/app/src
+    networks:
+      - backend-net
 
   ai-service:
     build:
@@ -66,7 +71,13 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-healthmate}:${DB_PASSWORD:-healthmate123}@db:5432/${DB_NAME:-health_mate}
+      DATABASE_URL: postgresql://${DB_USER:-healthmate}:${DB_PASSWORD}@db:5432/${DB_NAME:-health_mate}
+    networks:
+      - ai-net
 
 volumes:
   pgdata:
+
+networks:
+  backend-net:
+  ai-net:

@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { calculateCyclePhase, localDateString } from '../cycle/cycle.service';
+import {
+  calculateCyclePhase,
+  localDateString,
+  parseLocalDate,
+} from '../cycle/cycle.service';
 import { DailyRitual } from '../entities/daily-ritual.entity';
 import { DailyStat } from '../entities/daily-stat.entity';
 import { UserCycle } from '../entities/user-cycle.entity';
@@ -20,7 +24,9 @@ export class StatsService {
   ) {}
 
   async getHistory(user: User, days: number) {
-    const clampedDays = Math.min(Math.max(days, 1), 90);
+    // 비숫자 days(?days=abc) → NaN 전파로 인한 잘못된 SQL 날짜/500 방지(P0-4).
+    const safeDays = Number.isNaN(days) ? 30 : days;
+    const clampedDays = Math.min(Math.max(safeDays, 1), 90);
     const endDate = localDateString();
     const startDate = localDateString(
       new Date(Date.now() - (clampedDays - 1) * 86400000),
@@ -43,9 +49,12 @@ export class StatsService {
       const ritual = ritualMap.get(s.date);
       let phase: string | null = null;
       if (cycle) {
+        // 각 레코드의 날짜 기준으로 phase 계산 (오늘 기준 고정 버그 P1-1 수정).
         const { phase: p } = calculateCyclePhase(
           cycle.lastPeriodStartDate,
           cycle.averagePeriodLength,
+          cycle.averageCycleLength,
+          parseLocalDate(s.date),
         );
         phase = p;
       }
@@ -80,6 +89,7 @@ export class StatsService {
           const { phase, dayOfCycle } = calculateCyclePhase(
             cycle.lastPeriodStartDate,
             cycle.averagePeriodLength,
+            cycle.averageCycleLength,
           );
           return {
             current_phase: phase,
