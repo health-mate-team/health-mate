@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
@@ -8,6 +10,7 @@ import { ActionsModule } from './actions/actions.module';
 import { AuthModule } from './auth/auth.module';
 import { CodesModule } from './codes/codes.module';
 import { CommonModule } from './common/common.module';
+import { RedisModule } from './common/redis/redis.module';
 import { CycleModule } from './cycle/cycle.module';
 import { NutritionModule } from './nutrition/nutrition.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
@@ -44,6 +47,9 @@ import { WorkoutModule } from './workout/workout.module';
       }),
       inject: [ConfigService],
     }),
+    // 전역 기본 레이트리밋(IP당 60초 200회). 인증 엔드포인트는 @Throttle로 5회로 강화(H-1).
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60000, limit: 200 }]),
+    RedisModule,
     CommonModule,
     AuthModule,
     CodesModule,
@@ -58,6 +64,6 @@ import { WorkoutModule } from './workout/workout.module';
     NutritionModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

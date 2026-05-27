@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { TokenBlacklistService } from '../common/redis/token-blacklist.service';
 import { User } from '../entities/user.entity';
 import { AuthService } from './auth.service';
 
@@ -40,6 +41,13 @@ describe('AuthService', () => {
           useValue: {
             sign: jest.fn().mockReturnValue('mock_jwt_token'),
             verify: jest.fn(),
+          },
+        },
+        {
+          provide: TokenBlacklistService,
+          useValue: {
+            invalidateUser: jest.fn().mockResolvedValue(undefined),
+            isInvalidated: jest.fn().mockResolvedValue(false),
           },
         },
       ],

@@ -13,10 +13,15 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  // TODO(C-1/H-5): Nginx/ALB 도입 시 app.set('trust proxy', 1) 추가 — 없으면 레이트리밋 키가 프록시 IP로 붕괴됨.
   app.use(helmet());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
   );
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') ?? [
