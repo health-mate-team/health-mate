@@ -97,6 +97,47 @@ ssh -i ~/.ssh/healthmate-key.pem ec2-user@43.201.67.1
 
 ---
 
+## 7. 백엔드 수정 워크플로우
+
+### 평상시 (앱 기능/UI 개발)
+로컬 Docker 불필요. Flutter만 실행하면 EC2 서버에 자동 연결됩니다.
+
+```bash
+cd app
+flutter run
+# → http://43.201.67.1:3001/api (EC2) 자동 연결
+```
+
+### 백엔드 코드 수정 시
+
+**1. 로컬 백엔드 실행**
+```bash
+# 프로젝트 루트에서
+docker-compose up -d --build backend
+```
+
+**2. Flutter를 로컬 백엔드로 연결**
+```bash
+cd app
+flutter run --dart-define=API_BASE_URL=http://localhost:3001/api
+```
+
+**3. 확인 후 EC2 배포**
+```bash
+git push origin main
+# → GitHub Actions가 EC2에 자동 배포
+```
+
+### 서버 정보 요약
+
+| 항목 | 로컬 | EC2 (프로덕션) |
+|---|---|---|
+| API URL | `http://localhost:3001/api` | `http://43.201.67.1:3001/api` |
+| DB | `localhost:5433` | EC2 내부 (외부 미노출) |
+| Redis | `localhost:6380` | EC2 내부 (외부 미노출) |
+
+---
+
 ## 문의
 
 이슈는 GitHub Issues에 등록해주세요.
